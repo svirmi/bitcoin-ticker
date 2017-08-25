@@ -8,12 +8,25 @@ const ChromeRemoteInterface = require('chrome-remote-interface');
 const chromeLauncher = require('chrome-launcher');
 const spawn = require('child_process').spawn;
 
+
+//Examples of perfectly aligned videoSpeed
+// 1 - With offset and video speed up
+// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" 0.45 "setpts=0.835*PTS"
+// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" 0.45 "setpts=0.835*PTS"
+
+// 2 - With larger offset but NO speed up
+//node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" 1 "setpts=1*PTS"
+
+// 3 - With even larger offset HD
+//node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" 2 "setpts=1*PTS"
+
 // call this
 (async function() {
 
   var args = process.argv.slice(2);
-  var url = getUrl(args);
-  var offset = getOffset(args);
+  var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
+  var audioOffset = getAudioOffset(args); // 1 - i.e: 1.0
+  var videoSpeed = getVideoSpeed(args); // 2 - i.e:" setpts=0.832*PTS
 
   //init vars
   var streamStats = {};
@@ -58,13 +71,22 @@ const spawn = require('child_process').spawn;
     return args[0];
   }
 
-  function getOffset(args){
-    console.log("Offset of:" + args[1]);
+  function getAudioOffset(args){
+    console.log("Audio offset of:" + args[1]);
     if(args[1] === undefined || args[1] === ""){
       console.log("Exiting offset is not defined in the params");
       process.exit(1);
     }
     return args[1];
+  }
+
+  function getVideoSpeed(args){
+    console.log("Video Speed of:" + args[2]);
+    if(args[2] === undefined || args[2] === ""){
+      console.log("Exiting video speed is not defined in the params");
+      process.exit(1);
+    }
+    return args[2];
   }
 
   function initRemoteInterface(chrome){
@@ -140,7 +162,7 @@ const spawn = require('child_process').spawn;
       //Input 0: Audio
       '-thread_queue_size', '1024',
       //'-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
-      '-itsoffset', offset,
+      '-itsoffset', audioOffset,
       '-f', 'pulse', '-i', 'default',
       '-acodec', 'aac',
 
@@ -155,10 +177,10 @@ const spawn = require('child_process').spawn;
       //'-async', '1000', '-vsync', '1',
       //'-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 slow motion
-      '-filter:v', 'setpts=0.832*PTS',
+      '-filter:v', videoSpeed,
       //This is to slow down audio, but audio is always good, no need this
       //'-filter:a', 'atempo=0.975',
-      '-shortest', '-r', '60',
+      '-shortest', '-r', '30',
       '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
     ];
