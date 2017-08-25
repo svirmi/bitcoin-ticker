@@ -135,32 +135,32 @@ const spawn = require('child_process').spawn;
     console.log("Initializing FFMPEG....");
 
     var ops=[
-
       //"-debug_ts",
 
       //Input 0: Audio
       '-thread_queue_size', '1024',
       //'-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
-      //'-itsoffset', '1.0',
+      '-itsoffset', offset,
       '-f', 'pulse', '-i', 'default',
       '-acodec', 'aac',
 
       // Input 1: Video
       '-thread_queue_size', '1024',
       '-framerate', '25',
-      '-ss', offset,
+      //'-ss', offset,
       '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
       '-pix_fmt', 'yuvj420p',
 
       // Output
       //'-async', '1000', '-vsync', '1',
       //'-af', 'aresample=async=1000',
-      //'-filter:v', 'setpts=1.1*PTS',
-      //'-filter:a', 'atempo=0.99',
-      '-shortest', '-r', '25',
-      '-f', 'mp4', 'recording.mp4',
+      // This is to speed up video 0.5 double speed, 2.0 slow motion
+      '-filter:v', 'setpts=0.832*PTS',
+      //This is to slow down audio, but audio is always good, no need this
+      //'-filter:a', 'atempo=0.975',
+      '-shortest', '-r', '60',
+      '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
-
     ];
     ffmpeg = spawn('ffmpeg', ops, { stdio: [ 'pipe', 'pipe', 2 ] } );
     ffmpeg.on('error',function(e){
