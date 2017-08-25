@@ -11,13 +11,15 @@ const spawn = require('child_process').spawn;
 
 //Examples of perfectly aligned videoSpeed
 // 1 - With offset and video speed up
+// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" 0.45 "setpts=0.835*PTS"
+// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" 0.45 "setpts=0.835*PTS"
 // node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" 0.45 "setpts=0.835*PTS"
 // node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" 0.45 "setpts=0.835*PTS"
 
-// 2 - With larger offset but NO speed up
+// 2 - With larger offset but NO speed up - Ratop 16:9
 //node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" 1 "setpts=1*PTS"
 
-// 3 - With even larger offset HD
+// 3 - With even larger offset
 //node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" 2 "setpts=1*PTS"
 
 // call this
@@ -101,7 +103,7 @@ const spawn = require('child_process').spawn;
     return Page.startScreencast({
       format: "jpeg",
       quality: 100,
-      everyNthFrame: 1
+      //everyNthFrame: 1
     });
   }
 
@@ -177,10 +179,11 @@ const spawn = require('child_process').spawn;
       //'-async', '1000', '-vsync', '1',
       //'-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 slow motion
-      '-filter:v', videoSpeed,
+      '-filter:v', videoSpeed, // "setpts=(PTS-STARTPTS)/30"
       //This is to slow down audio, but audio is always good, no need this
       //'-filter:a', 'atempo=0.975',
       '-shortest', '-r', '30',
+      '-threads', '0',
       '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
     ];
