@@ -11,7 +11,7 @@ const spawn = require('child_process').spawn;
 
 //Examples of perfectly aligned videoSpeed
 // node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -1
-// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" 0 <== Not sure why this one needs 0 not -1 to be aligned
+// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -1
 // node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -1
 // node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -1
 // node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -1
@@ -24,6 +24,19 @@ const spawn = require('child_process').spawn;
 // we can learn about this by looking into the video and analizing whats the rate
 // what we need to find out is how we can make it so that is is being done
 // at ffmpeg level and there is no problem with it
+
+// Mathematically
+// Streams recorded at 30 fps are shown at a rate of 1 frame every 33 ms ( 121.212121 faster than 25fps )
+// Streams recorded at 25 fps are shown at a rate of 1 frame every 40 ms
+
+// In other words in order to achieve the same speed we need to accelarate teh 30fps
+// by an inverse factor of 0.825, hence the property "setpts=0.825*PTS"
+// but adjusted for some reason we need to use "setpts=0.835*PTS"
+
+// This value is derived from the inverse relation of
+// 33ms => 100
+// 40ms => x
+// x = (33 * 100) / 40 = 82.5
 
 // call this
 (async function() {
@@ -203,13 +216,13 @@ const spawn = require('child_process').spawn;
       '-pix_fmt', 'yuvj420p',
 
       // Output
-      //'-async', '1000', '-vsync', '1',
-      //'-af', 'aresample=async=1000',
-      // This is to speed up video 0.5 double speed, 2.0 slow motion
+      // '-async', '1', '-vsync', '1',
+      // '-af', 'aresample=async=1000',
+      // This is to speed up video 0.5 double speed, 2.0 half as slow
       '-filter:v', videoSpeed,
       //'-filter:v', 'fps=fps=25',
       //This is to slow down audio, but audio is always good, no need this
-      //'-filter:a', 'atempo=0.975',
+      //'-filter:a', 'aresample=async=1', // no effect detected maybe we need buffer. it is causing sometimes to fail
       //'-shortest',
       //'-r', '25',
       '-threads', '0',
