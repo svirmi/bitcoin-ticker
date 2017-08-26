@@ -10,13 +10,13 @@ const spawn = require('child_process').spawn;
 
 
 //Examples of perfectly aligned videoSpeed
-// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -1
-// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -1
-// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -1
-// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -1
-// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -1
-// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -1
-// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -1
+// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2
+// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2
+// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2
+// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2
+// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2
+// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2
+// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2
 
 // This is what I have learnt so far. It seems that there are videos that are recorded at 25fps and at 30fpms
 // It seems that when we capture at 30fps we need to speed up the playback and when
@@ -37,6 +37,9 @@ const spawn = require('child_process').spawn;
 // 33ms => 100
 // 40ms => x
 // x = (33 * 100) / 40 = 82.5
+
+// We do not have support for 24fps, and if there is any video recorded at
+// 24fps we will not work and will look choppy but we can fix it need more time
 
 // call this
 (async function() {
