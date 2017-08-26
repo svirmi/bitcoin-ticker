@@ -10,17 +10,20 @@ const spawn = require('child_process').spawn;
 
 
 //Examples of perfectly aligned videoSpeed
-// 1 - With offset and video speed up
-// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" 0.45 "setpts=0.835*PTS"
-// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" 0.45 "setpts=0.835*PTS"
-// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" 0.45 "setpts=0.835*PTS"
-// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" 0.45 "setpts=0.835*PTS"
+// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -1
+// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" 0 <== Not sure why this one needs 0 not -1 to be aligned
+// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -1
+// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -1
+// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -1
+// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -1
+// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -1
 
-// 2 - With larger offset but NO speed up - Ratop 16:9
-//node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" 1 "setpts=1*PTS"
-
-// 3 - With even larger offset
-//node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" 2 "setpts=1*PTS"
+// This is what I have learnt so far. It seems that there are videos that are recorded at 25fps and at 30fpms
+// It seems that when we capture at 30fps we need to speed up the playback and when
+// we capture at 25fps we need to play it back a normal speed.
+// we can learn about this by looking into the video and analizing whats the rate
+// what we need to find out is how we can make it so that is is being done
+// at ffmpeg level and there is no problem with it
 
 // call this
 (async function() {
@@ -28,12 +31,18 @@ const spawn = require('child_process').spawn;
   var args = process.argv.slice(2);
   var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
   var audioOffset = getAudioOffset(args); // 1 - i.e: 1.0
-  var videoSpeed = getVideoSpeed(args); // 2 - i.e:" setpts=0.832*PTS
 
   //init vars
-  var streamStats = {};
-  streamStats.second = new Date();
-  var frameCount = 0;
+  const streamStats = {
+    printStats: true,
+    second : new Date(),
+    totalSeconds : 0,
+    framesPerSecond : 0,
+    totalFrames: 0,
+    totalFramesForFPS: 0, // Observerd FPS is streamStats.totalFramesForFPS / 5
+  };
+
+
   var ffmpeg;
 
   //Init chrome
@@ -55,9 +64,6 @@ const spawn = require('child_process').spawn;
     //Start capturing frames
     await startCapturingFrames();
 
-    //initialize ffmpeg
-    startStreaming();
-
   });
 
   //****************************************************************************
@@ -65,41 +71,32 @@ const spawn = require('child_process').spawn;
   //****************************************************************************
 
   function getUrl(args){
-    console.log("Working on url:" + args[0]);
+    log("Working on url:" + args[0]);
     if(args[0] === undefined || args[0] === ""){
-      console.log("Exiting url is not defined in the params");
+      log("Exiting url is not defined in the params");
       process.exit(1);
     }
     return args[0];
   }
 
   function getAudioOffset(args){
-    console.log("Audio offset of:" + args[1]);
+    log("Audio offset of:" + args[1]);
     if(args[1] === undefined || args[1] === ""){
-      console.log("Exiting offset is not defined in the params");
+      log("Exiting offset is not defined in the params");
       process.exit(1);
     }
     return args[1];
   }
 
-  function getVideoSpeed(args){
-    console.log("Video Speed of:" + args[2]);
-    if(args[2] === undefined || args[2] === ""){
-      console.log("Exiting video speed is not defined in the params");
-      process.exit(1);
-    }
-    return args[2];
-  }
-
   function initRemoteInterface(chrome){
     const port = chrome.port;
-    console.log("Initialize Remote Interface on port: " + port);
+    log("Initialize Remote Interface on port: " + port);
     return ChromeRemoteInterface({port: port});
   }
 
 
   function startCapturingFrames(){
-    console.log("Starting capturing screen frames..");
+    log("Starting capturing screen frames..");
     return Page.startScreencast({
       format: "jpeg",
       quality: 100,
@@ -113,64 +110,94 @@ const spawn = require('child_process').spawn;
 
 
   function onScreencastFrame(event) {
-    // var currentSecond = new Date();
-    // if (streamStats.second.toString() != currentSecond.toString() ){
-    //     console.log("Second at: " + streamStats.second + " has " + streamStats.count + " frames" );
-    //     streamStats.second = currentSecond;
-    //     streamStats.count = 0;
-    // }
-    // streamStats.count++;
-    frameCount++;
+
+    trackStats(event);
 
     if (Page) {
-      // console.log(event.sessionId);
-      //console.log( "Event SessionId: " + event.sessionId + " Medatada: " + JSON.stringify (event.metadata) );
-      //console.log( "Event Data: " + event.data );
+      // log(event.sessionId);
+      //log( "Event SessionId: " + event.sessionId + " Medatada: " + JSON.stringify (event.metadata) );
+      //log( "Event Data: " + event.data );
       Page.screencastFrameAck({sessionId: event.sessionId})
       .catch((err) => {
-        console.log("onScreencastAck: ", err);
+        log("onScreencastAck: ", err);
       });
 
+      // if(streamStats.totalFrames == 1){
+      //   log("Just captured first frame to be sent to FFMPEG.");
+      // }
 
-      if(frameCount == 1){
-        console.log("Just captured first frame to be sent to FFMPEG.");
+      const cutoutSecond = 10
+      if(streamStats.totalSeconds == cutoutSecond && !ffmpeg){
+        log("This is the streamStats: " + JSON.stringify(streamStats));
+        log("Disabling stats printing...");
+        streamStats.printStats = false;
+        // If we have captured at 30 fps we will need to speed up
+        const needsSpeedUp = (streamStats.totalFramesForFPS / 5) >= 29;
+        ffmpegStart(needsSpeedUp);
       }
 
-      if(ffmpeg && ffmpeg.stdin){
+      if(streamStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
         var img = new Buffer(event.data, "base64");
         ffmpeg.stdin.write(img);
-      }else{
-        console.log("ffmpeg not ready yet..");
       }
-
+      // else{
+      //   log("ffmpeg not ready yet..");
+      // }
     }
+  }
+
+  function trackStats(event){
+    const currentSecond = new Date();
+    if (streamStats.second.toString() != currentSecond.toString() ){
+        if(streamStats.printStats && streamStats.totalSeconds > 0 ){
+            log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames" );
+        }
+        streamStats.totalSeconds++;
+        streamStats.second = currentSecond;
+        streamStats.framesPerSecond = 0;
+        streamStats.framesPerSecondAvg = streamStats.totalFrames / streamStats.totalSeconds;
+    }
+
+    if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
+        streamStats.totalFramesForFPS++;
+    }
+
+    streamStats.framesPerSecond++;
+    streamStats.totalFrames++;
   }
 
   function closeAll(){
     remoteInterface.close();
     chrome.kill();
-    console.log("Closing all");
+    log("Closing all");
   }
 
-
   // Start ffmpeg via spawn
-  function startStreaming(){
+  function ffmpegStart(needsSpeedUp){
 
-    console.log("Initializing FFMPEG....");
+    log("Initializing FFMPEG....");
+    var videoSpeed = "setpts=1*PTS";
+    if (needsSpeedUp){
+        log("This stream will be sped. Presentation rate at 0.835*PTS." )
+        videoSpeed = "setpts=0.835*PTS";
+    }else{
+        log("This stream does not need to be sped up. Presentation rate at 1*PTS." )
+    }
 
     var ops=[
       //"-debug_ts",
 
       //Input 0: Audio
       '-thread_queue_size', '1024',
-      //'-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
       '-itsoffset', audioOffset,
-      '-f', 'pulse', '-i', 'default',
+      '-r', '25',
+      '-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
+      //'-f', 'pulse', '-i', 'default',
       '-acodec', 'aac',
 
       // Input 1: Video
       '-thread_queue_size', '1024',
-      '-framerate', '25',
+      //'-framerate', '25',
       //'-ss', offset,
       '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
       '-pix_fmt', 'yuvj420p',
@@ -179,23 +206,28 @@ const spawn = require('child_process').spawn;
       //'-async', '1000', '-vsync', '1',
       //'-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 slow motion
-      '-filter:v', videoSpeed, // "setpts=(PTS-STARTPTS)/30"
+      '-filter:v', videoSpeed,
       //This is to slow down audio, but audio is always good, no need this
       //'-filter:a', 'atempo=0.975',
-      '-shortest', '-r', '30',
+      //'-shortest',
+      '-r', '25',
       '-threads', '0',
       '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
     ];
     ffmpeg = spawn('ffmpeg', ops, { stdio: [ 'pipe', 'pipe', 2 ] } );
     ffmpeg.on('error',function(e){
-      console.log('child process error' + e);
+      log('child process error' + e);
       closeAll();
     });
     ffmpeg.on('close', (code, signal) => {
-      console.log( "child process terminated due to receipt of signal ${signal}");
+      log( "child process terminated due to receipt of signal ${signal}");
       closeAll();
     });
+  }
+
+  function log(message){
+    console.log( "[Bullman] " + message );
   }
 
   // Launch Chrome
