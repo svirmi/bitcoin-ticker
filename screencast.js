@@ -207,10 +207,11 @@ const spawn = require('child_process').spawn;
       //'-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 slow motion
       '-filter:v', videoSpeed,
+      //'-filter:v', 'fps=fps=25',
       //This is to slow down audio, but audio is always good, no need this
       //'-filter:a', 'atempo=0.975',
       //'-shortest',
-      '-r', '25',
+      //'-r', '25',
       '-threads', '0',
       '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
