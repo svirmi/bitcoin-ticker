@@ -10,13 +10,15 @@ const spawn = require('child_process').spawn;
 
 
 //Examples of perfectly aligned videoSpeed
-// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2
-// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2
-// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2
-// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2
-// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2
-// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2
-// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2
+// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2 // 30fps
+// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2 // 30fps
+// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2 // 30fps
+// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2 // 30fps
+// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 // 30fps
+// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2 // 25fps
+// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2 // 25fps
+// node s.js "https://www.youtube.com/watch?v=Z32qL2MRkJM" -2 // 24fps
+
 
 // This is what I have learnt so far. It seems that there are videos that are recorded at 25fps and at 30fpms
 // It seems that when we capture at 30fps we need to speed up the playback and when
@@ -56,6 +58,7 @@ const spawn = require('child_process').spawn;
     framesPerSecond : 0,
     totalFrames: 0,
     totalFramesForFPS: 0, // Observerd FPS is streamStats.totalFramesForFPS / 5
+    currentFPS: 0,
   };
 
 
@@ -145,11 +148,9 @@ const spawn = require('child_process').spawn;
       const cutoutSecond = 10
       if(streamStats.totalSeconds == cutoutSecond && !ffmpeg){
         log("This is the streamStats: " + JSON.stringify(streamStats));
-        log("Disabling stats printing...");
-        streamStats.printStats = false;
-        // If we have captured at 30 fps we will need to speed up
-        const needsSpeedUp = (streamStats.totalFramesForFPS / 5) >= 29;
-        ffmpegStart(needsSpeedUp);
+        // log("Disabling stats printing...");
+        // streamStats.printStats = false;
+        ffmpegStart(streamStats.currentFPS);
       }
 
       if(streamStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
@@ -163,6 +164,7 @@ const spawn = require('child_process').spawn;
   }
 
   function trackStats(event){
+
     const currentSecond = new Date();
     if (streamStats.second.toString() != currentSecond.toString() ){
         if(streamStats.printStats && streamStats.totalSeconds > 0 ){
@@ -171,11 +173,12 @@ const spawn = require('child_process').spawn;
         streamStats.totalSeconds++;
         streamStats.second = currentSecond;
         streamStats.framesPerSecond = 0;
-        streamStats.framesPerSecondAvg = streamStats.totalFrames / streamStats.totalSeconds;
+
     }
 
     if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
         streamStats.totalFramesForFPS++;
+        streamStats.currentFPS = Math.round(streamStats.totalFramesForFPS / (streamStats.totalSeconds - 4)) ;
     }
 
     streamStats.framesPerSecond++;
@@ -189,16 +192,18 @@ const spawn = require('child_process').spawn;
   }
 
   // Start ffmpeg via spawn
-  function ffmpegStart(needsSpeedUp){
+  function ffmpegStart(fps){
 
     log("Initializing FFMPEG....");
-    var videoSpeed = "setpts=1*PTS";
-    if (needsSpeedUp){
-        log("This stream will be sped. Presentation rate at 0.835*PTS." )
-        videoSpeed = "setpts=0.835*PTS";
-    }else{
-        log("This stream does not need to be sped up. Presentation rate at 1*PTS." )
-    }
+    log("Initializing FFMPEG with FPS: " + fps);
+
+    // var videoSpeed = "setpts=1*PTS";
+    // if (needsSpeedUp){
+    //     log("This stream will be sped. Presentation rate at 0.835*PTS." )
+    //     videoSpeed = "setpts=0.835*PTS";
+    // }else{
+    //     log("This stream does not need to be sped up. Presentation rate at 1*PTS." )
+    // }
 
     var ops=[
       //"-debug_ts",
@@ -206,14 +211,14 @@ const spawn = require('child_process').spawn;
       //Input 0: Audio
       '-thread_queue_size', '1024',
       '-itsoffset', audioOffset,
-      '-r', '25',
+      //'-r', '25',
       '-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
       //'-f', 'pulse', '-i', 'default',
       '-acodec', 'aac',
 
       // Input 1: Video
       '-thread_queue_size', '1024',
-      //'-framerate', '25',
+      '-framerate', fps,
       //'-ss', offset,
       '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
       '-pix_fmt', 'yuvj420p',
@@ -222,12 +227,12 @@ const spawn = require('child_process').spawn;
       // '-async', '1', '-vsync', '1',
       // '-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 half as slow
-      '-filter:v', videoSpeed,
+      //'-filter:v', videoSpeed,
       //'-filter:v', 'fps=fps=25',
       //This is to slow down audio, but audio is always good, no need this
       //'-filter:a', 'aresample=async=1', // no effect detected maybe we need buffer. it is causing sometimes to fail
       //'-shortest',
-      //'-r', '25',
+      '-r', fps,
       '-threads', '0',
       '-f', 'mp4', 'recording.mp4'
       //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
