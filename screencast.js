@@ -10,14 +10,17 @@ const spawn = require('child_process').spawn;
 
 
 //Examples of perfectly aligned videoSpeed
-// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2 // 30fps
-// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2 // 30fps
-// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2 // 30fps
-// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2 // 30fps
-// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 // 30fps
-// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2 // 25fps
-// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2 // 25fps
-// node s.js "https://www.youtube.com/watch?v=Z32qL2MRkJM" -2 // 24fps
+// node s.js "https://www.youtube.com/watch?v=0pdCW9-eiVU" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 default experiment // 30fps
+// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2 default experiment // 25fps
+// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2 default experiment // 25fps
+// node s.js "https://www.youtube.com/watch?v=Z32qL2MRkJM" -2 default experiment // 24fps
+
+
 
 
 // This is what I have learnt so far. It seems that there are videos that are recorded at 25fps and at 30fpms
@@ -49,6 +52,8 @@ const spawn = require('child_process').spawn;
   var args = process.argv.slice(2);
   var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
   var audioOffset = getAudioOffset(args); // 1 - i.e: 1.0
+  var audioInputName = getAudioInputName(args); // 2 - i.e: "default"
+  var outputName = getOutputName(args); // 3 - i.e: "experiment"
 
   //init vars
   const streamStats = {
@@ -105,6 +110,24 @@ const spawn = require('child_process').spawn;
       process.exit(1);
     }
     return args[1];
+  }
+
+  function getAudioInputName(args){
+    log("Audio Input Name of:" + args[2]);
+    if(args[2] === undefined || args[2] === ""){
+      log("Exiting, audio input name is not defined in the params");
+      process.exit(1);
+    }
+    return args[2];
+  }
+
+  function getOutputName(args){
+    log("Output Name of:" + args[3]);
+    if(args[3] === undefined || args[3] === ""){
+      log("Exiting, output name is not defined in the params");
+      process.exit(1);
+    }
+    return args[3];
   }
 
   function initRemoteInterface(chrome){
@@ -212,8 +235,8 @@ const spawn = require('child_process').spawn;
       '-thread_queue_size', '1024',
       '-itsoffset', audioOffset,
       //'-r', '25',
-      '-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
-      //'-f', 'pulse', '-i', 'default',
+      //'-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
+      '-f', 'pulse', '-i', audioInputName,
       '-acodec', 'aac',
 
       // Input 1: Video
@@ -234,8 +257,8 @@ const spawn = require('child_process').spawn;
       //'-shortest',
       '-r', fps,
       '-threads', '0',
-      '-f', 'mp4', 'recording.mp4'
-      //'-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/experiment"
+      //'-f', 'mp4', 'recording.mp4'
+      '-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/" + outputName
     ];
     ffmpeg = spawn('ffmpeg', ops, { stdio: [ 'pipe', 'pipe', 2 ] } );
     ffmpeg.on('error',function(e){
