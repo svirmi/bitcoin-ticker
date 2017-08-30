@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async-child-process": "^1.1.1",
     "child_process": "^1.0.2",
     "chrome-launcher": "^0.6.0",
     "chrome-remote-interface": "^0.24.4",
