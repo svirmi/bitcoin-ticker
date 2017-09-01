@@ -7,6 +7,13 @@ pulseaudio -D
 Kill PA
 pulseaudio -k
 
+consfigure pulseaudio with this:
+It is located under /etc/pulse/default.pa
+load-module module-stream-restore restore_device=false
+
+PulsaAudio Commands
+List Default Settings: pacmd stat
+Create sink: pactl load-module module-null-sink sink_name=Test
 
 
 Installing Node

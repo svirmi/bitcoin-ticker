@@ -1,6 +1,6 @@
 // IMPORTANT READ!
 // Audio works once we disable the disabling of the Audio
-// from here: /Users/sebap/git/empirical/bullman-experiments/bullman/node_modules/chrome-launcher/flags.js
+// from here: /Users/sebap/git/empirical/bullman-experiments/bullman/node_modules/chrome-launcher/flagscreencast.js
 
 // Chrome Dev Tools: https://chromedevtools.github.io/devtools-protocol/
 
@@ -12,18 +12,18 @@ const execAsync = require('async-child-process').execAsync;
 
 
 //Examples of perfectly aligned videoSpeed
-// node s.js "https://www.youtube.com/watch?v=0pdCW9-eiVU" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=szoOsG9137U" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 experiment // 30fps
-// node s.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2 experiment // 25fps
-// node s.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2 experiment // 25fps
-// node s.js "https://www.youtube.com/watch?v=Z32qL2MRkJM" -2 experiment // 24fps
+// node screencast.js "https://www.youtube.com/watch?v=0pdCW9-eiVU" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=szoOsG9137U" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=X_gnyJeVr28" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=KWh9YLtbbws" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=R1_VNTdRJNI" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 experiment // 30fps
+// node screencast.js "https://www.youtube.com/watch?v=wAVzKY-u-ac" -2 experiment // 25fps
+// node screencast.js "https://www.youtube.com/watch?v=5-prFsuWdqs" -2 experiment // 25fps
+// node screencast.js "https://www.youtube.com/watch?v=Z32qL2MRkJM" -2 experiment // 24fps
 
 
-// node screencast.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 alsa_output.pci-0000_00_1b.0.analog-stereo.monitor experiment2
+// node screencast.js "https://www.youtube.com/watch?v=-G30tD8sPuw" -2 experiment2
 
 
 
@@ -52,6 +52,11 @@ const execAsync = require('async-child-process').execAsync;
 
 // call this
 (async function() {
+
+  // Set Default Sink
+  // It is located under /etc/pulse/default.pa
+  // load-module module-stream-restore restore_device=false
+  await setDefaultSink();
 
   var args = process.argv.slice(2);
   var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
@@ -86,9 +91,6 @@ const execAsync = require('async-child-process').execAsync;
 
   // Create a new audio sink for this stream
   const sinkId = await createSink(outputName);
-  log("New sink id:" + sinkId);
-  await setDefaultSink(outputName);
-
 
   await loadPage(url);
 
@@ -99,10 +101,9 @@ const execAsync = require('async-child-process').execAsync;
     await execAsync('sleep 5');
 
     const inputId = await getInputId(chrome.pid);
-    log("Input id:" + inputId);
 
+    // move input to its corresponding sink
     const moveInputOutput = await moveInput(inputId, sinkId);
-    //log("Move Input Output:" + moveInputOutput);
 
     //Start capturing frames
     await startCapturingFrames();
@@ -279,16 +280,33 @@ const execAsync = require('async-child-process').execAsync;
     return ops;
   }
 
-  async function createSink(sink_name) {
-    await execAsync('pactl load-module module-null-sink sink_name=' + sink_name);
-    const {stdout} = await execAsync('pactl list short sinks | grep ' + sink_name + '| cut -f1');
-    const sink_id = stdout.trim();
-    return sink_id;
+  async function createSink(sinkName) {
+    var sinkId = await readSinkId(sinkName)
+
+    if(sinkId){
+      log("Exisiting Sink id: " + sinkId)
+      return sinkId;
+    }
+    await execAsync('pactl load-module module-null-sink sink_name=' + sinkName + ' sink_properties=device.description=' + sinkName);
+
+    sinkId = await readSinkId(sinkName);
+    log("New Sink id: " + sinkId);
+    return sinkId;
   }
 
-  async function setDefaultSink(sink_name){
+  async function readSinkId(sinkName){
+    const {stdout} = await execAsync('pactl list short sinks | grep ' + sinkName + '| cut -f1');
+    const sinkId = stdout.trim();
+    return sinkId;
+  }
 
-    const {stdout} = await execAsync('pacmd set-default-sink ' + sink_name);
+  async function setDefaultSink(){
+    log("Setting default sink to 'Default'");
+    const defaultSink = "Default";
+    const defaultSource = defaultSink +".monitor";
+    await createSink(defaultSink);
+    await execAsync('pacmd set-default-sink ' + defaultSink);
+    const {stdout} = await execAsync('pacmd set-default-source ' + defaultSource);
     const setDefaultOutput = stdout.trim();
     return setDefaultOutput;
   }
@@ -296,10 +314,12 @@ const execAsync = require('async-child-process').execAsync;
   async function getInputId(chromePid) {
     const {stdout} = await execAsync('./scripts/get_input_index.sh ' + chromePid);
     const inputId = stdout.trim();
+    log("Input id: " + inputId);
     return inputId;
   }
 
   async function moveInput(inputId, sinkId) {
+    log("Moving Input id: " + inputId + " to Sink id: " + sinkId);
     const {stdout} = await execAsync('pacmd move-sink-input ' + inputId + ' ' + sinkId);
     const output = stdout.trim();
     return output;
