@@ -62,6 +62,8 @@ exports.start = async function() {
   var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
   var audioOffset = getAudioOffset(args); // 1 - i.e: 1.0
   var outputName = getOutputName(args); // 3 - i.e: "experiment"
+  var ffmpeg;
+  var lastImage;
 
   //init vars
   const streamStats = {
@@ -75,7 +77,7 @@ exports.start = async function() {
   };
 
 
-  var ffmpeg;
+
 
   //Init chrome
   const chrome = await launchChrome();
@@ -164,14 +166,19 @@ exports.start = async function() {
 
   function onScreencastFrame(event) {
 
-    trackStats(event);
-
     if (Page) {
 
       Page.screencastFrameAck({sessionId: event.sessionId})
       .catch((err) => {
         log("onScreencastAck: ", err);
       });
+
+      const fps = trackStats(event);
+      if(fps > streamStats.currentFPS ){
+          // do not send if it is above the threshold
+          log("Dropping this frame..")
+          return;
+      }
 
       const cutoutSecond = 10
       if(streamStats.totalSeconds == cutoutSecond && !ffmpeg){
@@ -182,8 +189,13 @@ exports.start = async function() {
       }
 
       if(streamStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
-        var img = new Buffer(event.data, "base64");
-        ffmpeg.stdin.write(img);
+        lastImage = new Buffer(event.data, "base64");
+        ffmpeg.stdin.write(lastImage);
+        while(streamStats.framesDeltaForFPS < 0){
+            log("Adding extra frame..");
+            ffmpeg.stdin.write(lastImage);
+            streamStats.framesDeltaForFPS++;
+        }
       }
     }
   }
@@ -193,12 +205,21 @@ exports.start = async function() {
     const currentSecond = new Date();
     if (streamStats.second.toString() != currentSecond.toString() ){
         if(streamStats.printStats && streamStats.totalSeconds > 0 ){
-            log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames" );
+            streamStats.framesDeltaForFPS = streamStats.framesPerSecond - streamStats.currentFPS;
+            log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS );
         }
+        if(streamStats.totalSeconds > 20){
+          if (Math.abs(streamStats.framesDeltaForFPS) >3){
+            log("We should be considering restarting ffmpeg as this delta is too high..");
+            streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
+            ffmpegRestart(streamStats.currentFPS);
+          }
+        }
+
+
         streamStats.totalSeconds++;
         streamStats.second = currentSecond;
         streamStats.framesPerSecond = 0;
-
     }
 
     if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
@@ -208,12 +229,20 @@ exports.start = async function() {
 
     streamStats.framesPerSecond++;
     streamStats.totalFrames++;
+    return streamStats.framesPerSecond;
   }
 
   function closeAll(){
     remoteInterface.close();
     chrome.kill();
     log("Closing all");
+  }
+
+  function ffmpegRestart(fps){
+    audioOffset = 0;
+    ffmpeg.stdin.pause();
+    ffmpeg.kill();
+    ffmpegStart(fps);
   }
 
   // Start ffmpeg via spawn
@@ -249,12 +278,14 @@ exports.start = async function() {
       // Input 1: Video
       '-thread_queue_size', '1024',
       '-framerate', fps,
+      '-vsync', '1',
       //'-ss', offset,
       '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
       '-pix_fmt', 'yuvj420p',
 
       // Output
-      // '-async', '1', '-vsync', '1',
+      // '-async', '1',
+      '-vsync', 'cfr',
       // '-af', 'aresample=async=1000',
       // This is to speed up video 0.5 double speed, 2.0 half as slow
       //'-filter:v', videoSpeed,
@@ -275,7 +306,7 @@ exports.start = async function() {
     var sinkId = await readSinkId(sinkName)
 
     if(sinkId){
-      log("Exisiting Sink id: " + sinkId)
+      log("Existing Sink id: " + sinkId)
       return sinkId;
     }
     await execAsync('pactl load-module module-null-sink sink_name=' + sinkName + ' sink_properties=device.description=' + sinkName);
