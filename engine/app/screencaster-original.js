@@ -209,7 +209,7 @@ exports.start = async function() {
             log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS );
         }
         if(streamStats.totalSeconds > 20){
-          if (Math.abs(streamStats.framesDeltaForFPS) >3){
+          if (Math.abs(streamStats.framesDeltaForFPS) > 5){
             log("We should be considering restarting ffmpeg as this delta is too high..");
             streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
             ffmpegRestart(streamStats.currentFPS);
