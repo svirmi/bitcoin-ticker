@@ -1,0 +1,19 @@
+{
+  "name": "bullman",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async-child-process": "^1.1.1",
+    "body-parser": "^1.17.2",
+    "child_process": "^1.0.2",
+    "chrome-launcher": "^0.6.0",
+    "chrome-remote-interface": "^0.24.4",
+    "express": "^4.15.4"
+  }
+}

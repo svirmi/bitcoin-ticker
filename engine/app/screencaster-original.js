@@ -51,7 +51,7 @@ const execAsync = require('async-child-process').execAsync;
 // 24fps we will not work and will look choppy but we can fix it need more time
 
 // call this
-(async function() {
+exports.start = async function() {
 
   // Set Default Sink
   // It is located under /etc/pulse/default.pa
@@ -167,17 +167,11 @@ const execAsync = require('async-child-process').execAsync;
     trackStats(event);
 
     if (Page) {
-      // log(event.sessionId);
-      //log( "Event SessionId: " + event.sessionId + " Medatada: " + JSON.stringify (event.metadata) );
-      //log( "Event Data: " + event.data );
+
       Page.screencastFrameAck({sessionId: event.sessionId})
       .catch((err) => {
         log("onScreencastAck: ", err);
       });
-
-      // if(streamStats.totalFrames == 1){
-      //   log("Just captured first frame to be sent to FFMPEG.");
-      // }
 
       const cutoutSecond = 10
       if(streamStats.totalSeconds == cutoutSecond && !ffmpeg){
@@ -191,9 +185,6 @@ const execAsync = require('async-child-process').execAsync;
         var img = new Buffer(event.data, "base64");
         ffmpeg.stdin.write(img);
       }
-      // else{
-      //   log("ffmpeg not ready yet..");
-      // }
     }
   }
 
@@ -341,4 +332,4 @@ const execAsync = require('async-child-process').execAsync;
     });
   }
 
-})();
+}
