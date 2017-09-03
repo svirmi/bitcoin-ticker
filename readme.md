@@ -21,8 +21,12 @@ Installing Node
 
 Installing ffmpeg
 
-Installing Redis:
-https://redis.io/topics/quickstart
+# Installing Redis:
+Link: https://redis.io/topics/quickstart
+
+Solving write issues (https://stackoverflow.com/questions/19581059/misconf-redis-is-configured-to-save-rdb-snapshots)
+$ redis-cli
+127.0.0.1:6379> config set stop-writes-on-bgsave-error no
 
 
 ## IMPORTANT READ!

@@ -21,14 +21,14 @@ exports.track = function(event){
       streamStats.totalSeconds++;
       streamStats.second = currentSecond;
       streamStats.framesPerSecond = 0;
-
   }
 
-  if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
-      streamStats.totalFramesForFPS++;
-      streamStats.currentFPS = Math.round(streamStats.totalFramesForFPS / (streamStats.totalSeconds - 4)) ;
-  }
+  // if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
+  //     streamStats.totalFramesForFPS++;
+  //     streamStats.currentFPS = Math.round(streamStats.totalFramesForFPS / (streamStats.totalSeconds - 4)) ;
+  // }
 
   streamStats.framesPerSecond++;
   streamStats.totalFrames++;
+  return streamStats.framesPerSecond;
 }

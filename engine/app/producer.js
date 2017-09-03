@@ -87,7 +87,7 @@ function onScreencastFrame(event) {
     //Acknowledge screencast
     Page.screencastFrameAck({sessionId: event.sessionId})
     .catch((err) => {
-      log("onScreencastAck: ", err);
+      logger.log("onScreencastAck: ", err);
     });
 
     //var img = new Buffer(event.data, "base64");
