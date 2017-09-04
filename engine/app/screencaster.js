@@ -4,17 +4,18 @@ const exec = require('child_process').exec;
 const execAsync = require('async-child-process').execAsync;
 const logger = require('./logger');
 const pulseaudio = require('./pulseaudio');
-const args = require('./arguments-parser')
+const args = require('./arguments');
+const stats = require('./stats');
+const ffmpegLauncher = require('./ffmpeg');
 
 // We need to work on making this scoped to this instance of the producer
 var queue;
 var chrome;
 var Page;
 var Runtime;
+var ffmpeg;
 
-exports.init = async function(q) {
-  //Set the queue
-  setQueue(q);
+exports.start = async function(q) {
 
   // Set Default Sink
   await pulseaudio.setDefaultSink();
@@ -57,12 +58,6 @@ exports.init = async function(q) {
 
 }
 
-function setQueue(q){
-  queue = q;
-  logger.log("Setting producer to use queue: " + queue.name);
-}
-
-
 function initRemoteInterface(chrome){
   const port = chrome.port;
   logger.log("Initialize Remote Interface on port: " + port);
@@ -83,16 +78,41 @@ async function loadPage(url){
 }
 
 function onScreencastFrame(event) {
-  if (Page) {
-    //Acknowledge screencast
-    Page.screencastFrameAck({sessionId: event.sessionId})
-    .catch((err) => {
-      logger.log("onScreencastAck: ", err);
-    });
 
-    //var img = new Buffer(event.data, "base64");
-    //logger.log("Adding screenshot to the queue..");
-    queue.add({screenshot: event.data, now: new Date()});
+  Page.screencastFrameAck({sessionId: event.sessionId})
+  .catch((err) => {
+    logger.log("onScreencastAck: ", err);
+  });
+
+  //start by updating stats
+  stats.track(event);
+
+  //if ffmpeg restart recommended do it now!
+  if(stats.getStats.ffmpegRestartSuggested){
+    ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName());
+    return;
+  }
+
+  // dropping this frame this is too many frames for this second
+  if(stats.getStats.framesPerSecond > stats.getStats.currentFPS ){
+    logger.log("Dropping this frame..bye bye frame!")
+    return;
+  }
+
+  const cutoutSecond = 10
+  if(stats.getStats.totalSeconds == cutoutSecond && !ffmpeg){
+    logger.log("This is the streamStats: " + JSON.stringify(stats.getStats));
+    ffmpeg = ffmpegLauncher.start(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName());
+  }
+
+  if(stats.getStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
+    lastImage = new Buffer(event.data, "base64");
+    ffmpeg.stdin.write(lastImage);
+    while(stats.getStats.framesDeltaForFPS < 0){
+        logger.log("Adding extra frame..");
+        ffmpeg.stdin.write(lastImage);
+        stats.getStats.framesDeltaForFPS++;
+    }
   }
 }
 

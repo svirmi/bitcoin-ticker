@@ -5,8 +5,14 @@ function closeAll(){
   logger.log("Closing all");
 }
 
+exports.restart = function(fps, audioOffset, outputName){
+  ffmpeg.stdin.pause();
+  ffmpeg.kill('SIGINT');
+  return start(fps, audioOffset, outputName);
+}
+
 // Start ffmpeg via spawn
-exports.start = function(fps, audioOffset, outputName){
+var start = exports.start = function(fps, audioOffset, outputName){
 
   logger.log("Initializing FFMPEG....");
   logger.log("Initializing FFMPEG with FPS: " + fps);

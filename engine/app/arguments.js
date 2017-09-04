@@ -18,7 +18,7 @@ exports.getUrl = getUrl;
 
 function getAudioOffset(){
   logger.log("Audio offset of:" + args[1]);
-  if(args[1] === undefined || args[1] === ""){
+  if(args[1] == null || args[1] === ""){
     logger.log("Exiting offset is not defined in the params");
     process.exit(1);
   }
@@ -28,7 +28,7 @@ exports.getAudioOffset = getAudioOffset;
 
 function getOutputName(){
   logger.log("Output Name of:" + args[2]);
-  if(args[2] === undefined || args[2] === ""){
+  if(args[2] == null || args[2] === ""){
     logger.log("Exiting, output name is not defined in the params");
     process.exit(1);
   }
