@@ -14,6 +14,7 @@ var chrome;
 var Page;
 var Runtime;
 var ffmpeg;
+var lastRestartDateTime = 0;
 
 exports.start = async function(q) {
 
@@ -87,12 +88,16 @@ function onScreencastFrame(event) {
   //start by updating stats
   stats.track(event);
 
-  //if ffmpeg restart recommended do it now!
-  if(stats.getStats.ffmpegRestartSuggested){
+  //if ffmpeg restart recommended do it now if possible or wait until 10 seconds later
+  const nextRestart = lastRestartDateTime + 10000; //10 seconds later
+  const newRestartDateTime = new Date().getTime();
+  if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime  ){
+    lastRestartDateTime = newRestartDateTime;
+    stats.getStats.ffmpegRestartSuggested = false;
     ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
     return;
   }
-
+  
   // we do not have info of the FPS yet
   if(stats.getStats.currentFPS == 0){
     return;

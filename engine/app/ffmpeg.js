@@ -1,5 +1,6 @@
 const spawn = require('child_process').spawn;
 const logger = require('./logger');
+const execAsync = require('async-child-process').execAsync;
 
 var ffmpeg = null;
 
@@ -7,7 +8,7 @@ function closeAll(){
   logger.log("Closing all");
 }
 
-exports.restart = function(fps, audioOffset, outputName, callback){
+exports.restart = async function(fps, audioOffset, outputName, callback){
   // we will only restart once after 5 seconds
   if(ffmpeg == null){
     return ffmpeg;
@@ -17,9 +18,10 @@ exports.restart = function(fps, audioOffset, outputName, callback){
   try {
     ffmpeg.stdout.pause();
     ffmpeg.stdin.pause();
-    process.kill(-ffmpeg.pid);
+    await execAsync('kill -9 ' + ffmpeg.pid );
   }catch(error){
-    logger.log("Failed to close ffmpeg..we will continue for now, but we should retry")
+    logger.log("[ERROR] Failed to close ffmpeg.." + error)
+    process.exit(1);
   }
   ffmpeg = null;
   setTimeout(function() {
