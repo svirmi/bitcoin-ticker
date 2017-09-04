@@ -93,8 +93,13 @@ function onScreencastFrame(event) {
     return;
   }
 
+  // we do not have info of the FPS yet
+  if(stats.getStats.currentFPS == 0){
+    return;
+  }
+
   // dropping this frame this is too many frames for this second
-  if(stats.getStats.framesPerSecond > stats.getStats.currentFPS ){
+  if(stats.getStats.framesPerSecond > stats.getStats.currentFPS  ){
     logger.log("Dropping this frame..bye bye frame!")
     return;
   }

@@ -15,8 +15,9 @@ exports.restart = function(fps, audioOffset, outputName, callback){
   logger.log("We are restarting ffmpeg, we are noticing a lot of fluctuation on the framerate. Waiting 5 seconds...")
 
   try {
+    ffmpeg.stdout.pause();
     ffmpeg.stdin.pause();
-    ffmpeg.kill('SIGINT');
+    process.kill(-ffmpeg.pid);
   }catch(error){
     logger.log("Failed to close ffmpeg..we will continue for now, but we should retry")
   }

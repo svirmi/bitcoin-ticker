@@ -30,7 +30,7 @@ exports.track = function(event){
           logger.log("We should be considering restarting ffmpeg as this delta is too high..");
           streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
           streamStats.ffmpegRestartSuggested = true;
-          streamStats.totalSeconds = 0;
+          //streamStats.totalSeconds = 0;
         }else{
           streamStats.ffmpegRestartSuggested = false;
         }
