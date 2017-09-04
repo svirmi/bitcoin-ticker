@@ -2,7 +2,6 @@ const logger = require('./logger');
 
 //init vars
 const streamStats = {
-  printStats: true,
   second : Math.floor(new Date().getTime() / 1000),
   totalSeconds : 0,
   framesPerSecond : 0,
@@ -19,8 +18,10 @@ exports.track = function(event){
 
   const currentSecond = Math.floor(new Date().getTime() / 1000);
   const thisSecond = streamStats.second;
+
+  // This will happen only once every
   if (streamStats.second.toString() != currentSecond.toString() ){
-      if(streamStats.printStats && streamStats.totalSeconds > 0 ){
+      if(streamStats.totalSeconds > 0 ){
           streamStats.framesDeltaForFPS = streamStats.framesPerSecond - streamStats.currentFPS;
           logger.log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS + ". " );
       }
@@ -29,6 +30,7 @@ exports.track = function(event){
           logger.log("We should be considering restarting ffmpeg as this delta is too high..");
           streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
           streamStats.ffmpegRestartSuggested = true;
+          streamStats.totalSeconds = 0;
         }else{
           streamStats.ffmpegRestartSuggested = false;
         }
