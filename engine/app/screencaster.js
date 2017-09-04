@@ -89,7 +89,7 @@ function onScreencastFrame(event) {
 
   //if ffmpeg restart recommended do it now!
   if(stats.getStats.ffmpegRestartSuggested){
-    ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName());
+    ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
     return;
   }
 
@@ -114,6 +114,10 @@ function onScreencastFrame(event) {
         stats.getStats.framesDeltaForFPS++;
     }
   }
+}
+
+function ffmpegSet(f){
+  ffmpeg = f;
 }
 
 // Launch Chrome

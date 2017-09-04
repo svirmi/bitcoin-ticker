@@ -3,7 +3,7 @@ const logger = require('./logger');
 //init vars
 const streamStats = {
   printStats: true,
-  second : new Date(),
+  second : Math.floor(new Date().getTime() / 1000),
   totalSeconds : 0,
   framesPerSecond : 0,
   totalFrames: 0,
@@ -17,11 +17,12 @@ exports.getStats = streamStats;
 
 exports.track = function(event){
 
-  const currentSecond = new Date();
+  const currentSecond = Math.floor(new Date().getTime() / 1000);
+  const thisSecond = streamStats.second;
   if (streamStats.second.toString() != currentSecond.toString() ){
       if(streamStats.printStats && streamStats.totalSeconds > 0 ){
           streamStats.framesDeltaForFPS = streamStats.framesPerSecond - streamStats.currentFPS;
-          logger.log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS );
+          logger.log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS + ". " );
       }
       if(streamStats.totalSeconds > 20){
         if (Math.abs(streamStats.framesDeltaForFPS) > 5){

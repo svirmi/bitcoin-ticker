@@ -1,14 +1,31 @@
 const spawn = require('child_process').spawn;
 const logger = require('./logger');
 
+var ffmpeg = null;
+
 function closeAll(){
   logger.log("Closing all");
 }
 
-exports.restart = function(fps, audioOffset, outputName){
-  ffmpeg.stdin.pause();
-  ffmpeg.kill('SIGINT');
-  return start(fps, audioOffset, outputName);
+exports.restart = function(fps, audioOffset, outputName, callback){
+  // we will only restart once after 5 seconds
+  if(ffmpeg == null){
+    return ffmpeg;
+  }
+  logger.log("We are restarting ffmpeg, we are noticing a lot of fluctuation on the framerate. Waiting 5 seconds...")
+
+  try {
+    ffmpeg.stdin.pause();
+    ffmpeg.kill('SIGINT');
+  }catch(error){
+    logger.log("Failed to close ffmpeg..we will continue for now, but we should retry")
+  }
+  ffmpeg = null;
+  setTimeout(function() {
+    ffmpeg = start(fps, audioOffset, outputName);
+    callback(ffmpeg);
+  }, 1000);
+  return ffmpeg; //which should be null at this point
 }
 
 // Start ffmpeg via spawn
