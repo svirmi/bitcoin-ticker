@@ -10,6 +10,8 @@ const streamStats = {
   currentFPS: 0,
   framesDeltaForFPS: 0,
   ffmpegRestartSuggested: false,
+  ffmpegRestartSuggestedCounter: 0,
+  lastKnownDelta: 0,
 };
 
 exports.getStats = streamStats;
@@ -26,10 +28,11 @@ exports.track = function(event){
           logger.log("Second at: " + streamStats.second + " has " + streamStats.framesPerSecond + " frames. Delta: " + streamStats.framesDeltaForFPS + ". " );
       }
       if(streamStats.totalSeconds > 20){
-        if (Math.abs(streamStats.framesDeltaForFPS) > 5){
-          logger.log("We should be considering restarting ffmpeg as this delta is too high..");
+        if (shouldConsiderRestart()){
+          logger.log("We should be considering restarting ffmpeg as this delta is too consistent..");
           streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
           streamStats.ffmpegRestartSuggested = true;
+          streamStats.ffmpegRestartSuggestedCounter = 0;
         }
       }
       streamStats.totalSeconds++;
@@ -44,4 +47,15 @@ exports.track = function(event){
 
   streamStats.framesPerSecond++;
   streamStats.totalFrames++;
+}
+
+function shouldConsiderRestart(){
+  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
+      streamStats.ffmpegRestartSuggestedCounter++
+  }else{
+      streamStats.ffmpegRestartSuggestedCounter = 0;
+  }
+  streamStats.lastKnownDelta = streamStats.framesDeltaForFPS;
+
+  return streamStats.ffmpegRestartSuggestedCounter > 10;
 }

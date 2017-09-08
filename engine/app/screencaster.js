@@ -94,10 +94,11 @@ function onScreencastFrame(event) {
   if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime  ){
     lastRestartDateTime = newRestartDateTime;
     stats.getStats.ffmpegRestartSuggested = false;
+    stats.getStats.ffmpegRestartSuggestedCounter = 0;
     ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
     return;
   }
-  
+
   // we do not have info of the FPS yet
   if(stats.getStats.currentFPS == 0){
     return;

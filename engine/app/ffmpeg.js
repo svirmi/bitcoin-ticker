@@ -13,7 +13,7 @@ exports.restart = async function(fps, audioOffset, outputName, callback){
   if(ffmpeg == null){
     return ffmpeg;
   }
-  logger.log("We are restarting ffmpeg, we are noticing a lot of fluctuation on the framerate. Waiting 5 seconds...")
+  logger.log("We are restarting ffmpeg, we are noticing a lot of fluctuation on the framerate...")
 
   try {
     ffmpeg.stdout.pause();
