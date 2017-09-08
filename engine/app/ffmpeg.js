@@ -2,38 +2,35 @@ const spawn = require('child_process').spawn;
 const logger = require('./logger');
 const execAsync = require('async-child-process').execAsync;
 
-var ffmpegToKill = null;
 var ffmpeg = null;
 
 function closeAll(){
   logger.log("Closing all");
 }
 
-
 // This is a eager restart, we will restart first an then kill the previous one
 // so we do not loose stream on the media server, ffmpeg gotta be amazing
-exports.restart = async function(fps, audioOffset, outputName){
-
+exports.restart = async function(fps, audioOffset, outputName, cb){
+  // we will only restart once after 5 seconds
   if(ffmpeg == null){
     return ffmpeg;
   }
   logger.log("We are restarting ffmpeg, we are noticing a lot of fluctuation on the framerate...")
 
-  ffmpegToKill = ffmpeg;
-  ffmpegToKill.stdout.pause();
-  ffmpegToKill.stdin.pause();
-
-  setTimeout(async function() {
-      try {
-        logger.log( "child process about to be killed: " + ffmpegToKill.pid);
-        await execAsync('kill -9 ' + ffmpegToKill.pid );
-      }catch(error){
-        logger.log("[ERROR] Failed to close ffmpeg.." + error)
-        process.exit(1);
-      }
-  }, 5000);
-
-  return start(fps, audioOffset, outputName);
+  try {
+    ffmpeg.stdout.pause();
+    ffmpeg.stdin.pause();
+    await execAsync('kill -9 ' + ffmpeg.pid );
+  }catch(error){
+    logger.log("[ERROR] Failed to close ffmpeg.." + error)
+    process.exit(1);
+  }
+  ffmpeg = null;
+  setTimeout(function() {
+    ffmpeg = start(fps, audioOffset, outputName);
+    cb(ffmpeg);
+  }, 50);
+  return ffmpeg; //which should be null at this point
 }
 
 // Start ffmpeg via spawn

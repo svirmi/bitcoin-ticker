@@ -49,8 +49,8 @@ exports.track = function(event){
 }
 
 function shouldConsiderRestart(){
-  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
-  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
+  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
+  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
       streamStats.ffmpegRestartSuggestedCounter++
   }else{
       streamStats.ffmpegRestartSuggestedCounter = 0;
