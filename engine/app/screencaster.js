@@ -94,7 +94,7 @@ function onScreencastFrame(event) {
   }
 
   // dropping this frame this is too many frames for this second
-  if(stats.getStats.framesPerSecond > stats.getStats.currentFPS  ){
+  if(stats.getStats.framesToAddNow == 0 ){
     //logger.log("Dropping this frame..bye bye frame!");
     //stats.frameDropped();
     return;
@@ -121,11 +121,10 @@ function onScreencastFrame(event) {
 
   // send the frame to ffmpeg
   if(stats.getStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
+    stats.getStats.ffmpegReady = true;
     lastImage = new Buffer(event.data, "base64");
-    ffmpeg.stdin.write(lastImage);
-    stats.frameAdded();
     //sync av by adding missing frames
-    while(stats.getStats.framesDeltaForFPS < 0){
+    while(stats.getStats.framesToAddNow > 0){
         //logger.log("Adding extra frame..");
         ffmpeg.stdin.write(lastImage);
         stats.getStats.framesDeltaForFPS++;

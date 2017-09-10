@@ -6,28 +6,38 @@ const streamStats = {
   totalSeconds : 0,
   framesPerSecond : 0,
   totalFrames: 0,
-  totalFramesForFPS: 0, // Observerd FPS is streamStats.totalFramesForFPS / 5
+  totalFramesForFPS: 0,
   currentFPS: 0,
   framesDeltaForFPS: 0,
   ffmpegRestartSuggested: false,
   ffmpegRestartSuggestedCounter: 0,
   lastKnownDelta: 0,
-  actualFrames:0
-
+  actualFrames:0,
+  // Smotthing vars
+  firstFrameTime: 0,
+  lastFrameReceivedTime: 0,
+  currentElapsedTime: 0,
+  idealTotalFrames:0,
+  totalFramesReceived: 0,
+  totalFramesAdded:0,
+  ffmpegReady: false
 };
-
 exports.getStats = streamStats;
 
-exports.track = function(event){
 
-  const currentSecond = Math.floor(new Date().getTime() / 1000);
+exports.track = function(event){
+  const now = new Date().getTime();
+  streamStats.lastFrameReceivedTime = now;
+  const currentSecond = Math.floor(now / 1000);
   const thisSecond = streamStats.second;
 
   // This will happen only once every
   if (streamStats.second != currentSecond ){
       if(streamStats.totalSeconds > 0 ){
-          streamStats.framesDeltaForFPS = streamStats.framesPerSecond - streamStats.currentFPS;
-          logger.log("Second: " + streamStats.second + " captured " + streamStats.framesPerSecond + "/" + streamStats.currentFPS + ". Delta: " + streamStats.framesDeltaForFPS + ". Sent to FFMPEG: " + streamStats.actualFrames + " ." );
+          streamStats.framesDeltaForFPS = streamStats.framesReceivedPerSecond - streamStats.currentFPS;
+          logger.log("Second: " + streamStats.second + " received " + streamStats.framesReceivedPerSecond + "/" + streamStats.currentFPS + ". Delta: " + streamStats.framesDeltaForFPS + ". Sent to FFMPEG: " + streamStats.totalFramesAddedPerSecond + " ." );
+          logger.log("Total Frames Received: " + streamStats.totalFramesReceived + " . Total Time Elapsed: " + streamStats.currentElapsedTime + " . Ideal Total Frames: " + streamStats.idealTotalFrames + " . Current Frames Added: " + streamStats.totalFramesAdded );
+
       }
       if(streamStats.totalSeconds > 20){
         if (shouldConsiderRestart()){
@@ -38,8 +48,8 @@ exports.track = function(event){
       }
       streamStats.totalSeconds++;
       streamStats.second = currentSecond;
-      streamStats.framesPerSecond = 0;
-      streamStats.actualFrames = 0;
+      streamStats.framesReceivedPerSecond = 0;
+      streamStats.totalFramesAddedPerSecond = 0;
   }
 
   if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
@@ -47,16 +57,31 @@ exports.track = function(event){
       streamStats.currentFPS = Math.round(streamStats.totalFramesForFPS / (streamStats.totalSeconds - 4)) ;
   }
 
-  streamStats.framesPerSecond++;
-  streamStats.totalFrames++;
+  streamStats.framesReceivedPerSecond++;
+
+  //calculate frames to add now only start adding when we know
+  //we are read
+  if (streamStats.ffmpegReady){
+    // adjust first time
+    if(streamStats.firstFrameTime == 0){
+      streamStats.firstFrameTime = now;
+    }
+
+    streamStats.totalFramesReceived++;
+    streamStats.idealFrameDistance = 1000/streamStats.currentFPS;
+    streamStats.currentElapsedTime = now - streamStats.firstFrameTime;
+    streamStats.idealTotalFrames = Math.floor(streamStats.currentElapsedTime / streamStats.idealFrameDistance) + 1;
+    streamStats.framesToAddNow = streamStats.idealTotalFrames - streamStats.totalFramesAdded;
+  }
 }
 
 exports.frameAdded = function(){
-  streamStats.actualFrames++
-}
-
-exports.frameDropped = function(){
-  streamStats.actualFrames--
+  if(streamStats.firstFrameTime == 0){
+    streamStats.firstFrameTime = streamStats.lastFrameReceivedTime;
+  }
+  streamStats.totalFramesAddedPerSecond++;
+  streamStats.totalFramesAdded++;
+  streamStats.framesToAddNow--;
 }
 
 function shouldConsiderRestart(){
