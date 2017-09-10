@@ -6,7 +6,7 @@ const logger = require('./logger');
 const pulseaudio = require('./pulseaudio');
 const args = require('./arguments');
 const stats = require('./stats');
-const ffmpegLauncher = require('./ffmpeg');
+const ffmpegLauncher = require('./ffmpeg-launcher');
 
 // We need to work on making this scoped to this instance of the producer
 var queue;
@@ -88,17 +88,6 @@ function onScreencastFrame(event) {
   //start by updating stats
   stats.track(event);
 
-  //if ffmpeg restart recommended do it now if possible or wait until 10 seconds later
-  const nextRestart = lastRestartDateTime + 10000; //10 seconds later
-  const newRestartDateTime = new Date().getTime();
-  if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime  ){
-    lastRestartDateTime = newRestartDateTime;
-    stats.getStats.ffmpegRestartSuggested = false;
-    stats.getStats.ffmpegRestartSuggestedCounter = 0;
-    ffmpeg = ffmpegLauncher.restart(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
-    return;
-  }
-
   // we do not have info of the FPS yet
   if(stats.getStats.currentFPS == 0){
     return;
@@ -113,18 +102,43 @@ function onScreencastFrame(event) {
   const cutoutSecond = 10
   if(stats.getStats.totalSeconds == cutoutSecond && !ffmpeg){
     logger.log("This is the streamStats: " + JSON.stringify(stats.getStats));
-    ffmpeg = ffmpegLauncher.start(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName());
+    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), null)
+    ffmpeg = ffmpegLauncher.start(params);
   }
 
+  //if ffmpeg restart recommended do it now if possible or wait until 10 seconds later
+  const nextRestart = lastRestartDateTime + 10000; //10 seconds later
+  const newRestartDateTime = new Date().getTime();
+  if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime  ){
+    lastRestartDateTime = newRestartDateTime;
+    stats.getStats.ffmpegRestartSuggested = false;
+    stats.getStats.ffmpegRestartSuggestedCounter = 0;
+    var params = ffmpegProcessParams(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
+    ffmpeg = ffmpegLauncher.restart(params);
+    return;
+  }
+
+  // send the frame to ffmpeg
   if(stats.getStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
     lastImage = new Buffer(event.data, "base64");
     ffmpeg.stdin.write(lastImage);
+    //sync av by adding missing frames
     while(stats.getStats.framesDeltaForFPS < 0){
         logger.log("Adding extra frame..");
         ffmpeg.stdin.write(lastImage);
         stats.getStats.framesDeltaForFPS++;
     }
   }
+}
+
+function ffmpegProcessParams(f, af, on, cb){
+  const params = {
+    fps: f,
+    audioOffset: af,
+    outputName: on,
+    callback: cb
+  }
+  return params;
 }
 
 function ffmpegSet(f){

@@ -5,7 +5,7 @@ var createSink = exports.createSink = async function (sinkName) {
   var sinkId = await readSinkId(sinkName)
 
   if(sinkId){
-    logger.log("Exisiting Sink id: " + sinkId)
+    logger.log("Existing Sink id: " + sinkId)
     return sinkId;
   }
   await execAsync('pactl load-module module-null-sink sink_name=' + sinkName + ' sink_properties=device.description=' + sinkName);
