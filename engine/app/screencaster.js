@@ -55,6 +55,9 @@ exports.start = async function(q) {
     //Start capturing frames
     await startCapturingFrames();
 
+    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), null)
+    ffmpeg = ffmpegLauncher.start(params);
+
   });
 
 }
@@ -88,39 +91,30 @@ function onScreencastFrame(event) {
   //start by updating stats
   stats.track(event);
 
-  // we do not have info of the FPS yet
-  if(stats.getStats.currentFPS == 0){
+  if(ffmpeg == null){
     return;
   }
 
   // dropping this frame this is too many frames for this second
   if(stats.getStats.framesToAddNow == 0 ){
-    //logger.log("Dropping this frame..bye bye frame!");
-    //stats.frameDropped();
     return;
   }
 
-  const cutoutSecond = 10
-  if(stats.getStats.totalSeconds == cutoutSecond && !ffmpeg){
-    logger.log("This is the streamStats: " + JSON.stringify(stats.getStats));
-    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), null)
-    ffmpeg = ffmpegLauncher.start(params);
-  }
-
-  //if ffmpeg restart recommended do it now if possible or wait until 10 seconds later
+  // //if ffmpeg restart recommended do it now if possible or wait until 10 seconds later
   const nextRestart = lastRestartDateTime + 10000; //10 seconds later
   const newRestartDateTime = new Date().getTime();
-  if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime  ){
+  if(stats.getStats.ffmpegRestartSuggested && nextRestart < newRestartDateTime){
     lastRestartDateTime = newRestartDateTime;
     stats.getStats.ffmpegRestartSuggested = false;
     stats.getStats.ffmpegRestartSuggestedCounter = 0;
+    stats.resetSmoothingAlgoStats();
     var params = ffmpegProcessParams(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
     ffmpeg = ffmpegLauncher.restart(params);
     return;
   }
 
   // send the frame to ffmpeg
-  if(stats.getStats.totalSeconds > (cutoutSecond + 1) && ffmpeg && ffmpeg.stdin){
+  if(ffmpeg && ffmpeg.stdin){
     stats.getStats.ffmpegReady = true;
     lastImage = new Buffer(event.data, "base64");
     //sync av by adding missing frames

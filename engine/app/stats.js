@@ -6,7 +6,7 @@ const streamStats = {
   totalSeconds : 0,
   framesPerSecond : 0,
   totalFramesForFPS: 0,
-  currentFPS: 0,
+  currentFPS: 27, // we will start with an empirical middle ground
   framesDeltaForFPS: 0,
   ffmpegRestartSuggested: false,
   ffmpegRestartSuggestedCounter: 0,
@@ -50,11 +50,6 @@ exports.track = function(event){
       streamStats.totalFramesAddedPerSecond = 0;
   }
 
-  if( streamStats.totalSeconds > 4 & streamStats.totalSeconds < 10 ){
-      streamStats.totalFramesForFPS++;
-      streamStats.currentFPS = Math.round(streamStats.totalFramesForFPS / (streamStats.totalSeconds - 4)) ;
-  }
-
   streamStats.framesReceivedPerSecond++;
 
   //calculate frames to add now only start adding when we know
@@ -82,14 +77,24 @@ exports.frameAdded = function(){
   streamStats.framesToAddNow--;
 }
 
+exports.resetSmoothingAlgoStats = function(){
+  streamStats.firstFrameTime= 0;
+  streamStats.lastFrameReceivedTime= 0;
+  streamStats.currentElapsedTime= 0;
+  streamStats.idealTotalFrames=0;
+  streamStats.totalFramesReceived= 0;
+  streamStats.totalFramesAdded = 0;
+  streamStats.ffmpegReady= false;
+}
+
 function shouldConsiderRestart(){
-  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
-  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
+  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
+  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
       streamStats.ffmpegRestartSuggestedCounter++
   }else{
       streamStats.ffmpegRestartSuggestedCounter = 0;
   }
   streamStats.lastKnownDelta = streamStats.framesDeltaForFPS;
 
-  return streamStats.ffmpegRestartSuggestedCounter > 10;
+  return streamStats.ffmpegRestartSuggestedCounter > 4;
 }
