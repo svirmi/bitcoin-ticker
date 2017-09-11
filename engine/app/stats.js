@@ -5,15 +5,14 @@ const streamStats = {
   second : Math.floor(new Date().getTime() / 1000),
   totalSeconds : 0,
   framesPerSecond : 0,
-  totalFrames: 0,
   totalFramesForFPS: 0,
   currentFPS: 0,
   framesDeltaForFPS: 0,
   ffmpegRestartSuggested: false,
   ffmpegRestartSuggestedCounter: 0,
   lastKnownDelta: 0,
-  actualFrames:0,
-  // Smotthing vars
+
+  // Smoothing algo vars
   firstFrameTime: 0,
   lastFrameReceivedTime: 0,
   currentElapsedTime: 0,
@@ -28,11 +27,10 @@ exports.getStats = streamStats;
 exports.track = function(event){
   const now = new Date().getTime();
   streamStats.lastFrameReceivedTime = now;
-  const currentSecond = Math.floor(now / 1000);
-  const thisSecond = streamStats.second;
+  const nowInSecond = Math.floor(now / 1000);
 
   // This will happen only once every
-  if (streamStats.second != currentSecond ){
+  if (streamStats.second != nowInSecond ){
       if(streamStats.totalSeconds > 0 ){
           streamStats.framesDeltaForFPS = streamStats.framesReceivedPerSecond - streamStats.currentFPS;
           logger.log("Second: " + streamStats.second + " received " + streamStats.framesReceivedPerSecond + "/" + streamStats.currentFPS + ". Delta: " + streamStats.framesDeltaForFPS + ". Sent to FFMPEG: " + streamStats.totalFramesAddedPerSecond + " ." );
@@ -47,7 +45,7 @@ exports.track = function(event){
         }
       }
       streamStats.totalSeconds++;
-      streamStats.second = currentSecond;
+      streamStats.second = nowInSecond;
       streamStats.framesReceivedPerSecond = 0;
       streamStats.totalFramesAddedPerSecond = 0;
   }
@@ -85,8 +83,8 @@ exports.frameAdded = function(){
 }
 
 function shouldConsiderRestart(){
-  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
-  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
+  //if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta && streamStats.lastKnownDelta != 0 ){
+  if(streamStats.framesDeltaForFPS == streamStats.lastKnownDelta ){
       streamStats.ffmpegRestartSuggestedCounter++
   }else{
       streamStats.ffmpegRestartSuggestedCounter = 0;
