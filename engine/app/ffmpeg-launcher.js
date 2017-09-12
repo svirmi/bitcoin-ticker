@@ -93,6 +93,8 @@ function ffmpegOpts(params){
     '-threads', '0',
     //'-f', 'mp4', 'recording.mp4'
     '-c:a', 'aac', '-strict', '-2',
+    //'-acodec', 'aac', '-strict', 'experimental', '-ab', '48k', '-ac', '2', '-ar', '44100',
+    //'-af', 'aresample=async=1',
     '-f', 'flv', "rtmp://stream-staging.livepin.tv:1935/live/" + params.outputName
   ];
   return ops;

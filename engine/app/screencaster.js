@@ -44,7 +44,7 @@ exports.start = async function(q) {
   await Page.loadEventFired(async () => {
 
     // Waiting so we are loading the sound
-    await execAsync('sleep 5');
+    await execAsync('sleep 7');
 
     // GetInputId
     const inputId = await pulseaudio.getInputId(chrome.pid);
