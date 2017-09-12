@@ -44,7 +44,8 @@ exports.start = async function(q) {
   await Page.loadEventFired(async () => {
 
     // Waiting so we are loading the sound
-    await execAsync('sleep 7');
+    // pushing this further, vimeo take s alot of time to load the audio
+    await execAsync('sleep 17');
 
     // GetInputId
     const inputId = await pulseaudio.getInputId(chrome.pid);
