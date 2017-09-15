@@ -39,6 +39,7 @@ router.get('/', function(req, res) {
 
 router.get('/jobs', jobController.list);
 router.post('/jobs', jobController.create);
+router.post('/jobs/:id/stop', jobController.stop);
 //more job routes here
 
 
