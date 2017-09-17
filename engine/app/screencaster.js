@@ -18,6 +18,8 @@ var lastRestartDateTime = 0;
 
 exports.start = async function(q) {
 
+  console.log("Process PID: " + process.pid);
+
   // Set Default Sink
   await pulseaudio.setDefaultSink();
 
