@@ -15,6 +15,20 @@ PulsaAudio Commands
 List Default Settings: pacmd stat
 Create sink: pactl load-module module-null-sink sink_name=Test
 
+Wnable pulseaudio at startup time
+/etc/pulse/client.conf change "autospawn=no" to "autospawn=yes."
+
+
+Configuring Google chrome
+Edit VM, Custom Metadata
+key: startup-script
+content:
+#! /bin/bash
+pulseaudio -D
+cd /home/seba/git/bullman/web
+node index.js
+
+
 
 Installing Node
 

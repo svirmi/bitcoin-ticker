@@ -1,5 +1,5 @@
-const execAsync = require('async-child-process').execAsync;
 const spawn = require('child_process').spawn;
+const execSync = require('child_process').execSync;
 const terminate = require('terminate');
 
 const db = {};
@@ -11,26 +11,39 @@ exports.list = function (){
 exports.create = function(job){
   console.log("Starting a screencaster job");
   try {
-    //response = spawn("node ../engine/index.js 'https://www.youtube.com/watch?v=5-prFsuWdqs' 0 awesomeness");
     const ops = getOpts(job);
     screencaster = spawn('node', ops, { stdio: [ 'pipe', 'pipe', 2 ], cwd: "../engine"} );
     console.log("Process Pid: " + screencaster.pid);
-    db[screencaster.pid] = setTimeout(function(){
-      terminate(screencaster.pid, function (err) {
-        if (err) { // you will get an error if you did not supply a valid process.pid
-          console.log("Oopsy, the pid was nto found:" + err); // handle errors in your preferred way.
-        }
-        else {
-          console.log('CLosing job by timeout'); // terminating the Processes succeeded.
-        }
-      })
-    }, 3600000); // kill process in 1 hour if it is not stopped earlier
+    db[screencaster.pid] = terminateJob(screencaster.pid); // kill process in 1 hour if it is not stopped earlier
   }catch(err){
     console.log("Failed badly to start the process " + err);
     return err;
   }
   job.jobId = screencaster.pid;
+  job.instanceIp = getInstanceIp();
   return job;
+}
+
+function getInstanceIp(){
+  try{
+    const response = execSync("curl http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor: Google'");
+    return response.trim();
+  }catch(err){
+    return "localhsot:8080";
+  }
+}
+
+function terminateJob(pid){
+  return setTimeout(function(){
+    terminate(pid, function (err) {
+      if (err) { // you will get an error if you did not supply a valid process.pid
+        console.log("Oopsy, the pid was nto found:" + err); // handle errors in your preferred way.
+      }
+      else {
+        console.log('Closing job by timeout'); // terminating the Processes succeeded.
+      }
+    })
+  }, 3600000);
 }
 
 function getOpts(job){

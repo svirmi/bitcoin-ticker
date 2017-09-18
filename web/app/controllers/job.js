@@ -1,7 +1,5 @@
 const service = require('../services/job')
 
-
-
 exports.list = function(req, res){
   const response = service.list();
   res.json(response);
