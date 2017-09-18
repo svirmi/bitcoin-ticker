@@ -18,14 +18,14 @@ exports.create = function(job){
     db[screencaster.pid] = setTimeout(function(){
       terminate(screencaster.pid, function (err) {
         if (err) { // you will get an error if you did not supply a valid process.pid
-          console.log("Oopsy, the pid was nto found: " + err); // handle errors in your preferred way.
+          console.log("Oopsy, the pid was nto found:k
+           " + err); // handle errors in your preferred way.
         }
         else {
           console.log('CLosing job by timeout'); // terminating the Processes succeeded.
         }
       })
-    //}, 3600000); // kill process in 1 hour if it is not stopped earlier
-  }, 60000);
+    }, 3600000); // kill process in 1 hour if it is not stopped earlier
   }catch(err){
     console.log("Failed badly to start the process " + err);
     return err;
