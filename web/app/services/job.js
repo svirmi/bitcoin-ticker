@@ -20,16 +20,17 @@ exports.create = function(job){
     return err;
   }
   job.jobId = screencaster.pid;
-  job.instanceIp = getInstanceIp();
+  job.hostUrl = getInstanceIp();
   return job;
 }
 
 function getInstanceIp(){
   try{
     const response = execSync("curl http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor: Google'");
-    return response.trim();
+    const ip = response.toString('utf-8');
+    return "http://" + ip + ":8080";
   }catch(err){
-    return "localhsot:8080";
+    return "http://localhsot:8080";
   }
 }
 
