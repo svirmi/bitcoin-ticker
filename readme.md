@@ -15,9 +15,14 @@ PulsaAudio Commands
 List Default Settings: pacmd stat
 Create sink: pactl load-module module-null-sink sink_name=Test
 
-Wnable pulseaudio at startup time
+Enable pulseaudio at startup time
 /etc/pulse/client.conf change "autospawn=no" to "autospawn=yes."
 
+This is to configure as a Daemon on https://github.com/davidedg/NAS-mod-config/blob/master/bt-sound/bt-sound-Bluez5_PulseAudio5.txt
+
+# systemctl start pulseaudio.service
+# systemctl stop pulseaudio.service
+# systemctl -l status pulseaudio.service
 
 Configuring Google chrome
 Edit VM, Custom Metadata
