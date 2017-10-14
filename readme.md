@@ -24,6 +24,9 @@ This is to configure as a Daemon on https://github.com/davidedg/NAS-mod-config/b
 # systemctl stop pulseaudio.service
 # systemctl -l status pulseaudio.service
 
+Troubleshooting:
+https://lists.freedesktop.org/archives/pulseaudio-discuss/2014-September/021447.html
+
 Configuring Google chrome
 Edit VM, Custom Metadata
 key: startup-script
