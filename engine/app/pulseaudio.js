@@ -1,6 +1,11 @@
 const execAsync = require('async-child-process').execAsync;
 const logger = require('./logger');
 
+
+var start = exports.start = async function(){
+    await execAsync('pulseaudio -D')
+}
+
 var createSink = exports.createSink = async function (sinkName) {
   var sinkId = await readSinkId(sinkName)
 

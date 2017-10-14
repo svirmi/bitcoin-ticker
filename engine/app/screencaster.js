@@ -20,6 +20,8 @@ exports.start = async function(q) {
 
   console.log("Process PID: " + process.pid);
 
+  pulseaudio.start();
+
   // Set Default Sink
   await pulseaudio.setDefaultSink();
 
