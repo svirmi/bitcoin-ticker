@@ -133,12 +133,12 @@ function onScreencastFrame(event) {
   }
 }
 
-function ffmpegProcessParams(f, af, on, rtmp_url, cb){
+function ffmpegProcessParams(f, af, on, ru, cb){
   const params = {
     fps: f,
     audioOffset: af,
     outputName: on,
-    rtmp_url: rtmp_url,
+    rtmpUrl: ru,
     callback: cb
   }
   return params;
