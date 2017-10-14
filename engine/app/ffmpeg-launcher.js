@@ -95,7 +95,7 @@ function ffmpegOpts(params){
     '-c:a', 'aac', '-strict', '-2',
     //'-acodec', 'aac', '-strict', 'experimental', '-ab', '48k', '-ac', '2', '-ar', '44100',
     //'-af', 'aresample=async=1',
-    '-f', 'flv', params.rtmp_url
+    '-f', 'flv', params.rtmpUrl
   ];
   return ops;
 }

@@ -53,7 +53,7 @@ function getOpts(job){
     job.url, // url to screencast
     '0', // audio offset
     job.outputName, // output name
-    job.rtmp_url //rtmp url 
+    job.rtmpUrl //rtmp url 
   ];
   return options;
 }

@@ -61,7 +61,7 @@ exports.start = async function(q) {
     //Start capturing frames
     await startCapturingFrames();
 
-    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), null)
+    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), args.getRtmpUrl(), null)
     ffmpeg = ffmpegLauncher.start(params);
 
   });
@@ -114,7 +114,7 @@ function onScreencastFrame(event) {
     stats.getStats.ffmpegRestartSuggested = false;
     stats.getStats.ffmpegRestartSuggestedCounter = 0;
     stats.resetSmoothingAlgoStats();
-    var params = ffmpegProcessParams(stats.getStats.currentFPS, 0, args.getOutputName(), ffmpegSet);
+    var params = ffmpegProcessParams(stats.getStats.currentFPS, 0, args.getOutputName(), args.getRtmpUrl(), ffmpegSet);
     ffmpeg = ffmpegLauncher.restart(params);
     return;
   }
@@ -133,11 +133,12 @@ function onScreencastFrame(event) {
   }
 }
 
-function ffmpegProcessParams(f, af, on, cb){
+function ffmpegProcessParams(f, af, on, rtmp_url, cb){
   const params = {
     fps: f,
     audioOffset: af,
     outputName: on,
+    rtmp_url: rtmp_url,
     callback: cb
   }
   return params;

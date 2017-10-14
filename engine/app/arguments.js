@@ -1,38 +1,49 @@
 const logger = require('./logger');
 
 var args = process.argv.slice(2);
-var url = getUrl(args); // 0 "http://urltoberecorded.com/index.html"
-var audioOffset = getAudioOffset(args); // 1 - i.e: 1.0
-var outputName = getOutputName(args); // 3 - i.e: "experiment"
-
 
 function getUrl(){
-  logger.log("Working on url:" + args[0]);
-  if(args[0] === undefined || args[0] === ""){
+  const url = args[0];
+  logger.log("Working on url: " + url);
+  if(url === undefined || url === ""){
     logger.log("Exiting url is not defined in the params");
     process.exit(1);
   }
-  return args[0];
+  return url;
 }
 exports.getUrl = getUrl;
 
 function getAudioOffset(){
-  logger.log("Audio offset of:" + args[1]);
-  if(args[1] == null || args[1] === ""){
+  const audioOffset = args[1];
+  logger.log("Audio offset of: " + audioOffset);
+  if(audioOffset == null || audioOffset === ""){
     logger.log("Exiting offset is not defined in the params");
     process.exit(1);
   }
-  return args[1];
+  return audioOffset;
 }
 exports.getAudioOffset = getAudioOffset;
 
 function getOutputName(){
-  logger.log("Output Name of:" + args[2]);
-  if(args[2] == null || args[2] === ""){
+  const outputName = args[2];
+  logger.log("Output Name of: " + outputName);
+  if(outputName == null || outputName === ""){
     logger.log("Exiting, output name is not defined in the params");
     process.exit(1);
   }
-  return args[2];
+  return outputName;
 }
 
 exports.getOutputName = getOutputName;
+
+function getRtmpUrl(){
+  const rtmpUrl = args[3];
+  logger.log("Rtmp Url: " + rtmpUrl );
+  if(rtmpUrl == null || rtmpUrl === ""){
+    logger.log("Exiting, rtmp url is not defined in the params");
+    process.exit(1);
+  }
+  return rtmpUrl;
+}
+
+exports.getRtmpUrl = getRtmpUrl;
