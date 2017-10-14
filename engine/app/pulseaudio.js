@@ -3,7 +3,9 @@ const logger = require('./logger');
 
 
 var start = exports.start = async function(){
-    await execAsync('pulseaudio -D')
+  try{
+    await execAsync('pulseaudio -D');
+  } catch (ex) { }
 }
 
 var createSink = exports.createSink = async function (sinkName) {
