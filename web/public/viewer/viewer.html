@@ -1,0 +1,83 @@
+<html>
+  <head>
+    <title> Demo Viewer</title>
+  </head>
+  <style>
+    .holder{
+      width: 800px;
+      height:600px;
+      position:relative;
+    }
+    .frame{
+      width: 100%;
+      height:100%;
+    }
+    .overlay{
+      position:absolute;
+      bottom:50;
+      left:0;
+      width:100%;
+      height:60px;
+      background: white;
+    }
+    .overlay-content{
+      text-align: center;
+      /* display: inline-block;*/
+      vertical-align: middle;
+      padding-top: 20px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-messaging.js"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  <script>
+    // Initialize Firebase
+    // TODO: Replace with your project's customized code snippet
+    var config = {
+      apiKey: "<API_KEY>",
+      authDomain: "<PROJECT_ID>.firebaseapp.com",
+      databaseURL: "https://bullman-staging.firebaseio.com",
+      storageBucket: "<BUCKET>.appspot.com",
+      messagingSenderId: "<SENDER_ID>",
+    };
+    firebase.initializeApp(config);
+    var defaultDatabase = firebase.database();
+    var jobsRef = firebase.database().ref('jobs/demo');
+    jobsRef.on('value', function(snapshot) {
+      updateOverlay(snapshot.val())
+    });
+
+    function updateOverlay(overlayInfo){
+      console.log(overlayInfo);
+      if(overlayInfo.show){
+        $(".overlay").show();
+      }else{
+        $(".overlay").hide();
+      }
+
+      $(".overlay-content").html(overlayInfo.message)
+    }
+
+  </script>
+  <body>
+    <div class=holder>
+      <iframe id="ytplayer" class="frame" type="text/html" width="640" height="360"
+        src="https://www.youtube.com/embed/fNr8kqSLpxQ?autoplay=1&origin=http://example.com"
+        frameborder="0">
+      </iframe>
+      <div class="overlay">
+        <div class="overlay-content">
+          This is a Overlay content
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -14,6 +14,9 @@ const jobController = require('./app/controllers/job')
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+//Add public folder to be serverd
+app.use(express.static('public'))
+
 var port = process.env.PORT || 8080;        // set our port
 
 // ROUTES FOR OUR API
