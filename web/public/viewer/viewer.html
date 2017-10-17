@@ -12,7 +12,7 @@
       width: 100%;
       height:100%;
     }
-    .overlay{
+    .overlay-1{
       position:absolute;
       bottom:50;
       left:0;
@@ -20,7 +20,7 @@
       height:60px;
       background: white;
     }
-    .overlay-content{
+    .overlay-1-content{
       text-align: center;
       /* display: inline-block;*/
       vertical-align: middle;
@@ -55,15 +55,14 @@
       updateOverlay(snapshot.val())
     });
 
-    function updateOverlay(overlayInfo){
-      console.log(overlayInfo);
-      if(overlayInfo.show){
-        $(".overlay").show();
+    function updateOverlay(overlays){
+      console.log(overlays);
+      if(overlays.overlay1.show){
+        $(".overlay-1").fadeIn(500);
       }else{
-        $(".overlay").hide();
+        $(".overlay-1").fadeOut(500);
       }
-
-      $(".overlay-content").html(overlayInfo.message)
+      $(".overlay-1-content").html(overlays.overlay1.message);
     }
 
   </script>
@@ -73,8 +72,8 @@
         src="https://www.youtube.com/embed/fNr8kqSLpxQ?autoplay=1&origin=http://example.com"
         frameborder="0">
       </iframe>
-      <div class="overlay">
-        <div class="overlay-content">
+      <div class="overlay-1">
+        <div class="overlay-1-content">
           This is a Overlay content
         </div>
       </div>
