@@ -79,6 +79,9 @@ function ffmpegOpts(params){
     //'-ss', offset,
     '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
     '-pix_fmt', 'yuvj420p',
+    //video optimization
+    '-me_method', 'epzs', '-threads', '4',
+    '-g', '45', '-bf', '2', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
 
     // Output
     // '-async', '1', '-vsync', '1',
