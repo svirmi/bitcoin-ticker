@@ -77,7 +77,7 @@ function initRemoteInterface(chrome){
 function startCapturingFrames(){
   logger.log("Starting capturing screen frames..");
   return Page.startScreencast({
-    format: "png",
+    format: "jpeg",
     quality: 100,
     //everyNthFrame: 1
   });
