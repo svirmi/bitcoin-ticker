@@ -77,11 +77,11 @@ function ffmpegOpts(params){
     '-thread_queue_size', '1024',
     '-framerate', params.fps,
     //'-ss', offset,
-    '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryFast', //'-tune', 'zerolatency',
+    '-i', '-', '-f', 'image2pipe', '-c:v', 'libx264', '-preset', 'veryslow', '-crf', '0', '-tune', 'zerolatency',
     '-pix_fmt', 'yuvj420p',
-    //video optimization
-    '-me_method', 'epzs', '-threads', '4',
-    '-g', '45', '-bf', '2', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
+    // video optimization
+    // '-me_method', 'epzs', '-threads', '4',
+    // '-g', '45', '-bf', '2', '-trellis', '2', '-cmp', '2', '-subcmp', '2',
 
     // Output
     // '-async', '1', '-vsync', '1',
