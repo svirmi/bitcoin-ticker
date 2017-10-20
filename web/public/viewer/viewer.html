@@ -1,75 +1,30 @@
 <html>
   <head>
     <title> Demo Viewer</title>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-messaging.js"></script>
+    <script
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="viewer.css">
+    <script src="viewer.js"></script>
   </head>
-  <style>
-    .holder{
-      width: 1280px;
-      height: 720px;
-      position:relative;
-    }
-    .frame{
-      width: 100%;
-      height:100%;
-    }
-    .overlay-1{
-      position:absolute;
-      bottom:50;
-      left:0;
-      width:100%;
-      height:60px;
-      background: white;
-    }
-    .overlay-1-content{
-      text-align: center;
-      /* display: inline-block;*/
-      vertical-align: middle;
-      padding-top: 15px;
-      font-size: 30px;
-    }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/4.5.0/firebase-messaging.js"></script>
-  <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-  crossorigin="anonymous"></script>
-  <script>
-    // Initialize Firebase
-    // TODO: Replace with your project's customized code snippet
-    var config = {
-      apiKey: "<API_KEY>",
-      authDomain: "<PROJECT_ID>.firebaseapp.com",
-      databaseURL: "https://bullman-staging.firebaseio.com",
-      storageBucket: "<BUCKET>.appspot.com",
-      messagingSenderId: "<SENDER_ID>",
-    };
-    firebase.initializeApp(config);
-    var defaultDatabase = firebase.database();
-    var jobsRef = firebase.database().ref('jobs/demo');
-    jobsRef.on('value', function(snapshot) {
-      updateOverlay(snapshot.val())
-    });
 
-    function updateOverlay(overlays){
-      console.log(overlays);
-      if(overlays.overlay1.show){
-        $(".overlay-1").fadeIn(500);
-      }else{
-        $(".overlay-1").fadeOut(500);
-      }
-      $(".overlay-1-content").html(overlays.overlay1.message);
-    }
-
-  </script>
   <body>
+
     <div class=holder>
-      <iframe id="ytplayer" class="frame" type="text/html" width="640" height="360"
+      <img class="emoji-1" src="emoji1.png"/>
+      <iframe id="ytplayer" class="frame1" type="text/html" width="640" height="360"
         src="https://www.youtube.com/embed/fNr8kqSLpxQ?autoplay=1&origin=http://example.com"
+        frameborder="0">
+      </iframe>
+      <iframe id="ytplayer" class="frame2" type="text/html" width="640" height="360"
+        src="https://www.youtube.com/embed/n9jIYDDHvi4?autoplay=1&"
         frameborder="0">
       </iframe>
       <div class="overlay-1">
@@ -77,7 +32,9 @@
           This is a Overlay content
         </div>
       </div>
+
     </div>
+
 
   </body>
 </html>
