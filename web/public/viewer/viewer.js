@@ -20,6 +20,7 @@ function updateOverlay(overlays){
   handleOverlays(overlays);
   handleEmoticons(overlays);
   handlePictureInPicture(overlays);
+  handleSnow(overlays);
 }
 
 function handleOverlays(overlays){
@@ -54,6 +55,16 @@ function handlePictureInPicture(overlays){
     pip.css({top: overlays.pip.position.top, left: overlays.pip.position.left});
   }else{
     $(".frame2").fadeOut(500);
+  }
+
+}
+
+function handleSnow(overlays){
+  if(overlays.snow.show){
+    var snow = $("#snow");
+    snow.fadeIn(500);
+  }else{
+    $("#snow").fadeOut(500);
   }
 
 }
