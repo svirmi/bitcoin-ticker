@@ -8,14 +8,14 @@
   height:100%;
 }
 
-.frame2{
+.pip{
   width: 300;
   height:175;
   position:absolute;
   top:50;
   left:50;
 }
-.overlay-1{
+.marquee{
   position:absolute;
   bottom:50;
   left:0;
@@ -23,7 +23,7 @@
   height:60px;
   background: white;
 }
-.overlay-1-content{
+.marquee-content{
   text-align: center;
   /* display: inline-block;*/
   vertical-align: middle;
@@ -40,8 +40,18 @@
   z-index: 100;
 }
 
+/* Add autumm effect*/
+/* https://codepen.io/MAW/pen/KdmwMb */
 
-#snow{
+.dot{
+  width:35px;
+  height:35px;
+  position:absolute;
+  background: url(http://www.clipartqueen.com/image-files/red-lobed-fall-clipart-leaf.png);
+  background-size: 100% 100%;
+}
+
+#winter{
 	background: none;
 	font-family: Androgyne;
 	background-image: url('http://www.wearewebstars.dk/codepen/img/s1.png'), url('http://www.wearewebstars.dk/codepen/img//s2.png'), url('http://www.wearewebstars.dk/codepen/img//s3.png');
@@ -56,23 +66,23 @@
 	-ms-animation: snow 10s linear infinite;
 	animation: snow 10s linear infinite;
 }
-@keyframes snow {
+@keyframes winter {
   0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
   50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
   100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
 }
-@-moz-keyframes snow {
+@-moz-keyframes winter {
   0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
   50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
   100% {background-position: 400px 1000px, 200px 400px, 100px 300px;}
 }
-@-webkit-keyframes snow {
+@-webkit-keyframes winter {
   0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
   50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
   100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
 }
-@-ms-keyframes snow {
+@-ms-keyframes winter {
   0% {background-position: 0px 0px, 0px 0px, 0px 0px;}
   50% {background-position: 500px 500px, 100px 200px, -100px 150px;}
   100% {background-position: 500px 1000px, 200px 400px, -100px 300px;}
-}	
+}

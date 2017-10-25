@@ -92,7 +92,7 @@ function ffmpegOpts(params){
     //This is to slow down audio, but audio is always good, no need this
     //'-filter:a', 'aresample=async=1', // no effect detected maybe we need buffer. it is causing sometimes to fail
     //'-shortest',
-    '-vb', '4000k',
+    '-vb', '2500k',
     '-vf', 'pp=al',
     '-r', params.fps,
     '-threads', '0',

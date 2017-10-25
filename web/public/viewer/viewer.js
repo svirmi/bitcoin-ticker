@@ -17,19 +17,20 @@ jobsRef.on('value', function(snapshot) {
 
 function updateOverlay(overlays){
   console.log(overlays);
-  handleOverlays(overlays);
+  handleMarquee(overlays);
   handleEmoticons(overlays);
   handlePictureInPicture(overlays);
   handleSnow(overlays);
+  handleAutumn(overlays);
 }
 
-function handleOverlays(overlays){
-  if(overlays.overlay1.show){
-    $(".overlay-1").fadeIn(500);
+function handleMarquee(overlays){
+  if(overlays.marquee.show){
+    $(".marquee").fadeIn(500);
   }else{
-    $(".overlay-1").fadeOut(500);
+    $(".marquee").fadeOut(500);
   }
-  $(".overlay-1-content").html(overlays.overlay1.message);
+  $(".marquee-content").html(overlays.marquee.message);
 }
 
 function handleEmoticons(overlays){
@@ -50,21 +51,57 @@ function handleEmoticons(overlays){
 
 function handlePictureInPicture(overlays){
   if(overlays.pip.show){
-    var pip = $(".frame2");
+    var pip = $(".pip");
     pip.fadeIn(500);
     pip.css({top: overlays.pip.position.top, left: overlays.pip.position.left});
   }else{
-    $(".frame2").fadeOut(500);
+    $(".pip").fadeOut(500);
   }
 
 }
 
 function handleSnow(overlays){
-  if(overlays.snow.show){
-    var snow = $("#snow");
-    snow.fadeIn(500);
+  var winter = $("#winter");
+  if(overlays.winter.show){
+    winter.fadeIn(500);
   }else{
-    $("#snow").fadeOut(500);
+    winter.fadeOut(500);
   }
 
 }
+
+
+function handleAutumn(overlays){
+    if(overlays.autumn.show){
+
+      TweenLite.set("#holder",{perspective:1000})
+      TweenLite.set("img",{xPercent:"-50%",yPercent:"-50%"})
+
+      var total = 30;
+      var warp = document.getElementById("holder");
+      var w = window.innerWidth;
+      var h = window.innerHeight;
+
+       for (i=0; i<total; i++){
+         var Div = document.createElement('div');
+         TweenLite.set(Div,{attr:{class:'dot'},x:R(0,w),y:R(-800,-150),z:R(-200,200)});
+         warp.appendChild(Div);
+         animm(Div, w, h);
+       }
+    }else{
+      var warp = document.getElementById("holder");
+      var paras = document.getElementsByClassName('dot');
+
+      while(paras[0]) {
+          paras[0].parentNode.removeChild(paras[0]);
+      }
+    }
+}
+
+function animm(elm, w, h){
+  TweenMax.to(elm,R(6,15),{y:0,ease:Linear.easeNone,repeat:-1,delay:-15});
+  TweenMax.to(elm,R(4,8),{x:'+=100',rotationZ:R(0,180),repeat:-1,yoyo:true,ease:Sine.easeInOut});
+  TweenMax.to(elm,R(2,8),{rotationX:R(0,360),rotationY:R(0,360),repeat:-1,yoyo:true,ease:Sine.easeInOut,delay:-5});
+};
+
+function R(min,max) {return min+Math.random()*(max-min)};
