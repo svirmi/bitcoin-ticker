@@ -20,7 +20,7 @@ function updateOverlay(overlays){
   handleMarquee(overlays);
   handleEmoticons(overlays);
   handlePictureInPicture(overlays);
-  handleSnow(overlays);
+  handleWinter(overlays);
   handleAutumn(overlays);
 }
 
@@ -60,14 +60,13 @@ function handlePictureInPicture(overlays){
 
 }
 
-function handleSnow(overlays){
+function handleWinter(overlays){
   var winter = $("#winter");
   if(overlays.winter.show){
     winter.fadeIn(500);
   }else{
     winter.fadeOut(500);
   }
-
 }
 
 
