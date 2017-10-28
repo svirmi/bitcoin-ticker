@@ -56,7 +56,7 @@ exports.start = async function(q) {
     const inputIdList = await pulseaudio.getInputId(chrome.pid);
 
     for (i = 0; i < inputIdList.length; i++) {
-      var inputId += inputIdList[i];
+      var inputId = inputIdList[i];
       // move input to its corresponding sink
       await pulseaudio.moveInput(inputId, sinkId);
     }
