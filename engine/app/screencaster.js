@@ -53,10 +53,13 @@ exports.start = async function(q) {
     await execAsync('sleep 17');
 
     // GetInputId
-    const inputId = await pulseaudio.getInputId(chrome.pid);
+    const inputIdList = await pulseaudio.getInputId(chrome.pid);
 
-    // move input to its corresponding sink
-    const moveInputOutput = await pulseaudio.moveInput(inputId, sinkId);
+    for (i = 0; i < inputIdList.length; i++) {
+      var inputId += inputIdList[i];
+      // move input to its corresponding sink
+      await pulseaudio.moveInput(inputId, sinkId);
+    }
 
     //Start capturing frames
     await startCapturingFrames();

@@ -38,7 +38,7 @@ exports.track = function(event){
 
       }
       if(streamStats.totalSeconds > 20){
-        if (shouldConsiderRestart()){
+        if (shouldConsiderRestart() && false){
           logger.log("We should be considering restarting ffmpeg as this delta is too consistent..");
           streamStats.currentFPS = streamStats.currentFPS + streamStats.framesDeltaForFPS;
           streamStats.ffmpegRestartSuggested = true;
