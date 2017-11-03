@@ -18,7 +18,7 @@ var lastRestartDateTime = 0;
 
 exports.start = async function(q) {
 
-  console.log("Process PID: " + process.pid);
+  logger.log("Process PID: " + process.pid);
 
   //Attempt to start pulseaudio deamon
   await pulseaudio.start();
@@ -47,6 +47,8 @@ exports.start = async function(q) {
 
   // Wait for window.onload before start streaming.
   await Page.loadEventFired(async () => {
+
+    logger.log("Page.loadEventFired onload fired");
 
     // Waiting so we are loading the sound
     // pushing this further, vimeo take s alot of time to load the audio
