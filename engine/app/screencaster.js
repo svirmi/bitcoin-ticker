@@ -19,7 +19,7 @@ var lastRestartDateTime = 0;
 exports.start = async function() {
 
   //todo handle the case where chrome is not loaded
-  chrome = loadChrome();
+  chrome = await loadChrome();
 
   logger.log("Process PID: " + process.pid);
 
