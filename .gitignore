@@ -1,4 +1,4 @@
 web/node_modules
 engine/node_modules
 node_modules
-engine/combined.log
+*/combined.log

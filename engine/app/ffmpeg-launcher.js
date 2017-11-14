@@ -3,14 +3,13 @@ const logger = require('./logger');
 const execAsync = require('async-child-process').execAsync;
 
 var ffmpeg = null;
-
 var restart = false;
 var restartParams = null;
 
 function closeAll(){
   logger.log("Closing all");
   if(restart){
-    logger.log("We are estarting ffmpeg here right after we are closing because we need to restart.");
+    logger.log("We are starting ffmpeg here right after we are closing because we need to restart.");
     restart = false;
     ffmpeg = start(restartParams);
     restartParams.callback(ffmpeg);
@@ -47,10 +46,12 @@ var start = exports.start = function(params){
 
   const ops = ffmpegOpts(params)
   ffmpeg = spawn('ffmpeg', ops, { stdio: [ 'pipe', 'pipe', 2 ] } );
+
   ffmpeg.on('error',function(e){
     logger.log('child process error' + e);
     closeAll();
   });
+
   ffmpeg.on('close', (code, signal) => {
     logger.log( "child process terminated due to receipt of signal ${signal}");
     closeAll();
@@ -59,6 +60,7 @@ var start = exports.start = function(params){
   logger.log( "child process started on this port: " + ffmpeg.pid);
 
   return ffmpeg;
+
 }
 
 function ffmpegOpts(params){

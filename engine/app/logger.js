@@ -8,10 +8,6 @@ const logger = winston.createLogger({
 });
 
 exports.log = function (message){
-  //console.log( "[Bullman] " + message );
-  //
-  // Logging
-  //
   logger.log({
     level: 'info',
     message: "[Bullman] " + message
