@@ -18,10 +18,11 @@ var lastRestartDateTime = 0;
 
 exports.start = async function() {
 
-  //todo handle the case where chrome is not loaded
-  chrome = await loadChrome();
-
   logger.log("Process PID: " + process.pid);
+
+  //TODO: handle the case where chrome is not loaded
+  chrome = await loadChrome();
+  logger.log("Chrome started on pid: " + chrome.pid);
 
   //Init pulse audio
   const sinkId = await initPulseAudio();
@@ -47,29 +48,25 @@ exports.start = async function() {
 }
 
 async function loadChrome(){
-  var chrome;
+
   try {
     //Init chrome
     logger.log("About to launch Chrome.");
-    chrome = await launchChrome();
-    logger.log("Chrome started on pid: " + chrome.pid);
+    return await launchChrome();
   }catch(error){
-      logger.log("Failed to load chrome: " + error);
+      logger.log("Failed to load chrome for the first time: " + error);
   }
 
-  if(chrome == null){
-    try {
-      //Init chrome
-      logger.log("About to launch Chrome for the seconds time.");
-      chrome = await launchChrome();
-      logger.log("Chrome started on pid: " + chrome.pid);
-    }catch(error){
-        logger.log("Failed to load chrome for the second time: " + error);
-    }
+  try {
+    //Init chrome
+    logger.log("About to launch Chrome for the second time.");
+    return await launchChrome();
+  }catch(error){
+      logger.log("Failed to load chrome for the second time: " + error);
   }
-
-  return chrome;
 }
+
+
 
 
 async function initPulseAudio(){
