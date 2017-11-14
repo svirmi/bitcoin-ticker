@@ -24,6 +24,7 @@ exports.start = async function(q) {
   const sinkId = await initPulseAudio();
 
   //Init chrome
+  logger.log("About to launch Chrome.");
   chrome = await launchChrome();
   logger.log("Chrome started on pid: " + chrome.pid);
 
@@ -48,14 +49,20 @@ exports.start = async function(q) {
 }
 
 async function initPulseAudio(){
-  //Attempt to start pulseaudio deamon
-  await pulseaudio.start();
 
-  // Set Default Sink
-  await pulseaudio.setDefaultSink();
+  try{
+    //Attempt to start pulseaudio deamon
+    await pulseaudio.start();
 
-  // Create a new audio sink for this stream
-  return await pulseaudio.createSink(args.getOutputName());
+    // Set Default Sink
+    await pulseaudio.setDefaultSink();
+
+    // Create a new audio sink for this stream
+    return await pulseaudio.createSink(args.getOutputName());
+
+  }catch(error){
+    throw error;
+  }
 }
 
 async function executeAfterPageLoaded(chrome, sinkId){
@@ -97,6 +104,7 @@ function startCapturingFrames(){
 }
 
 async function loadPage(url){
+  logger.log("Loading page: " + url)
   await Page.navigate({url: url});
 }
 
