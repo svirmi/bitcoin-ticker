@@ -1,6 +1,7 @@
 const spawn = require('child_process').spawn;
 const execSync = require('child_process').execSync;
 const terminate = require('terminate');
+const request = require('request');
 
 const db = {};
 
@@ -24,14 +25,33 @@ exports.create = function(job){
   return job;
 }
 
-function getInstanceIp(){
+async function getInstanceIp(){
   try{
-    const response = execSync("curl http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip -H 'Metadata-Flavor: Google'");
+    var options = {
+      url: 'http://metadata/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip',
+      headers: {
+        'Metadata-Flavor': 'Google'
+      }
+    };
+    const response = await doRequest(options);
     const ip = response.toString('utf-8');
     return "http://" + ip + ":8080";
   }catch(err){
+    console.log("whaaaaaaaaa");
     return "http://localhsot:8080";
   }
+}
+
+function doRequest(options) {
+  return new Promise(function (resolve, reject) {
+    request(options, function (error, res, body) {
+      if (!error && res.statusCode == 200) {
+        resolve(body);
+      } else {
+        reject(error);
+      }
+    });
+  });
 }
 
 function terminateJob(pid){
@@ -53,7 +73,7 @@ function getOpts(job){
     job.url, // url to screencast
     '0', // audio offset
     job.outputName, // output name
-    job.rtmpUrl //rtmp url 
+    job.rtmpUrl //rtmp url
   ];
   return options;
 }
@@ -64,7 +84,7 @@ exports.stop = function(jobId){
       console.log("Oopsy: " + err); // handle errors in your preferred way.
     }
     else {
-      console.log('CLosing job by invoking the stop endpoint'); // terminating the Processes succeeded.
+      console.log('Closing job by invoking the stop endpoint'); // terminating the Processes succeeded.
     }
   });
   //make sure we cancel the timeout
