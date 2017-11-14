@@ -46,6 +46,7 @@ exports.start = async function(q) {
       logger.log("Page.loadEventFired onload fired");
       await executeAfterPageLoaded(chrome, sinkId);
     });
+
   }catch(error){
       logger.log("Madre mia que esta pasando: " + error);
   }
@@ -177,12 +178,24 @@ function ffmpegSet(f){
 
 // Launch Chrome
 function launchChrome(headless=true) {
+  var chrome = null;
+
+  for (var step = 0; step < 2; step++) {
+    try{
+      chrome = startChrome();
+    }catch(error){
+      logger.log("Failed to start chrome: " + error);
+    }
+    if(chrome !== null){
+      break;
+    }
+  }
+  return chrome;
+}
+
+function startChrome(){
   return chromeLauncher.launch({
-    // port: 9222, // Uncomment to force a specific port of your choice.
-    chromeFlags: [
-      '--window-size=1280,720',
-      '--disable-gpu',
-      headless ? '--headless' : ''
-    ]
+    startingUrl: args.getUrl(),
+    chromeFlags: ['--window-size=1280,720','--headless', '--disable-gpu']
   });
 }
