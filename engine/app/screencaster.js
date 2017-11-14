@@ -16,43 +16,61 @@ var Runtime;
 var ffmpeg;
 var lastRestartDateTime = 0;
 
-exports.start = async function(q) {
+exports.start = async function() {
+
+  //todo handle the case where chrome is not loaded
+  chrome = loadChrome();
 
   logger.log("Process PID: " + process.pid);
 
   //Init pulse audio
   const sinkId = await initPulseAudio();
 
+  //Init remote interface
+  const remoteInterface = await initRemoteInterface(chrome);
+  remoteInterface.on("Page.screencastFrame", onScreencastFrame);
+
+  //Init Page and Runtime protocols from remote interface
+  Page = remoteInterface.Page;
+  Runtime = remoteInterface.Runtime;
+  await Promise.all([Page.enable(), Runtime.enable()]);
+
+  //Load page
+  await loadPage(args.getUrl());
+
+  // Wait for window.onload before start streaming.
+  await Page.loadEventFired(async () => {
+    logger.log("Page.loadEventFired onload fired");
+    await executeAfterPageLoaded(chrome, sinkId);
+  });
+
+}
+
+async function loadChrome(){
+  var chrome;
   try {
     //Init chrome
     logger.log("About to launch Chrome.");
     chrome = await launchChrome();
     logger.log("Chrome started on pid: " + chrome.pid);
-
-    //Init remote interface
-    const remoteInterface = await initRemoteInterface(chrome);
-    remoteInterface.on("Page.screencastFrame", onScreencastFrame);
-
-    //Init Page and Runtime protocols from remote interface
-    Page = remoteInterface.Page;
-    Runtime = remoteInterface.Runtime;
-    await Promise.all([Page.enable(), Runtime.enable()]);
-
-    //Load page
-    await loadPage(args.getUrl());
-
-    // Wait for window.onload before start streaming.
-    await Page.loadEventFired(async () => {
-      logger.log("Page.loadEventFired onload fired");
-      await executeAfterPageLoaded(chrome, sinkId);
-    });
-
   }catch(error){
-      logger.log("Madre mia que esta pasando: " + error);
+      logger.log("Failed to load chrome: " + error);
   }
 
+  if(chrome == null){
+    try {
+      //Init chrome
+      logger.log("About to launch Chrome for the seconds time.");
+      chrome = await launchChrome();
+      logger.log("Chrome started on pid: " + chrome.pid);
+    }catch(error){
+        logger.log("Failed to load chrome for the second time: " + error);
+    }
+  }
 
+  return chrome;
 }
+
 
 async function initPulseAudio(){
 
