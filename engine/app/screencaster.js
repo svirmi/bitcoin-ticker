@@ -21,7 +21,7 @@ exports.start = async function(q) {
   logger.log("Process PID: " + process.pid);
 
   //Init pulse audio
-  const sinkId = initPulseAudio();
+  const sinkId = await initPulseAudio();
 
   //Init chrome
   chrome = await launchChrome();
@@ -42,26 +42,7 @@ exports.start = async function(q) {
   // Wait for window.onload before start streaming.
   await Page.loadEventFired(async () => {
     logger.log("Page.loadEventFired onload fired");
-
-    // Waiting so we are loading the sound
-    // pushing this further, vimeo take s alot of time to load the audio
-    await execAsync('sleep 17');
-
-    // GetInputId
-    const inputIdList = await pulseaudio.getInputId(chrome.pid);
-
-    for (i = 0; i < inputIdList.length; i++) {
-      var inputId = inputIdList[i];
-      // move input to its corresponding sink
-      await pulseaudio.moveInput(inputId, sinkId);
-    }
-    
-    //Start capturing frames
-    await startCapturingFrames();
-
-    var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), args.getRtmpUrl(), null)
-    ffmpeg = ffmpegLauncher.start(params);
-
+    await executeAfterPageLoaded(chrome, sinkId);
   });
 
 }
@@ -75,6 +56,29 @@ async function initPulseAudio(){
 
   // Create a new audio sink for this stream
   return await pulseaudio.createSink(args.getOutputName());
+}
+
+async function executeAfterPageLoaded(chrome, sinkId){
+
+  // Waiting so we are loading the sound
+  // pushing this further, vimeo take s alot of time to load the audio
+  await execAsync('sleep 17');
+
+  // GetInputId
+  const inputIdList = await pulseaudio.getInputId(chrome.pid);
+
+  for (i = 0; i < inputIdList.length; i++) {
+    var inputId = inputIdList[i];
+    // move input to its corresponding sink
+    await pulseaudio.moveInput(inputId, sinkId);
+  }
+
+  //Start capturing frames
+  await startCapturingFrames();
+
+  var params = ffmpegProcessParams(stats.getStats.currentFPS, args.getAudioOffset(), args.getOutputName(), args.getRtmpUrl(), null)
+  ffmpeg = ffmpegLauncher.start(params);
+
 }
 
 function initRemoteInterface(chrome){
