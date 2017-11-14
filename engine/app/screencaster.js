@@ -178,22 +178,6 @@ function ffmpegSet(f){
 
 // Launch Chrome
 function launchChrome(headless=true) {
-  var chrome = null;
-
-  for (var step = 0; step < 2; step++) {
-    try{
-      chrome = startChrome();
-    }catch(error){
-      logger.log("Failed to start chrome: " + error);
-    }
-    if(chrome !== null){
-      break;
-    }
-  }
-  return chrome;
-}
-
-function startChrome(){
   return chromeLauncher.launch({
     startingUrl: args.getUrl(),
     chromeFlags: ['--window-size=1280,720','--headless', '--disable-gpu']
