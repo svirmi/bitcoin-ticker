@@ -16,6 +16,7 @@
     "chrome-remote-interface": "^0.24.4",
     "express": "^4.15.4",
     "request": "^2.83.0",
-    "terminate": "^2.1.0"
+    "terminate": "^2.1.0",
+    "winston": "^3.0.0-rc1"
   }
 }

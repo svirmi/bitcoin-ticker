@@ -2,26 +2,26 @@ const spawn = require('child_process').spawn;
 const execSync = require('child_process').execSync;
 const terminate = require('terminate');
 const request = require('request');
-
+const logger = require('./logger');
 const db = {};
 
 exports.list = function (){
   return "This is the response from this method Job::List()";
 }
 
-exports.create = function(job){
-  console.log("Starting a screencaster job");
+exports.create = async function(job){
+  logger.log("Starting a screencaster job");
   try {
     const ops = getOpts(job);
     screencaster = spawn('node', ops, { stdio: [ 'pipe', 'pipe', 2 ], cwd: "../engine"} );
-    console.log("Process Pid: " + screencaster.pid);
+    logger.log("Process Pid: " + screencaster.pid);
     db[screencaster.pid] = terminateJob(screencaster.pid); // kill process in 1 hour if it is not stopped earlier
   }catch(err){
-    console.log("Failed badly to start the process " + err);
+    logger.log("Failed badly to start the process " + err);
     return err;
   }
   job.jobId = screencaster.pid;
-  job.hostUrl = getInstanceIp();
+  job.hostUrl = await getInstanceIp();
   return job;
 }
 
@@ -37,8 +37,8 @@ async function getInstanceIp(){
     const ip = response.toString('utf-8');
     return "http://" + ip + ":8080";
   }catch(err){
-    console.log("whaaaaaaaaa");
-    return "http://localhsot:8080";
+    logger.log("Error trying to retrieve the ip of the host: " + err);
+    return "http://localhost:8080";
   }
 }
 
@@ -58,10 +58,10 @@ function terminateJob(pid){
   return setTimeout(function(){
     terminate(pid, function (err) {
       if (err) { // you will get an error if you did not supply a valid process.pid
-        console.log("Oopsy, the pid was nto found:" + err); // handle errors in your preferred way.
+        logger.log("Oopsy, the pid was not found:" + err); // handle errors in your preferred way.
       }
       else {
-        console.log('Closing job by timeout'); // terminating the Processes succeeded.
+        logger.log('Closing job by timeout'); // terminating the Processes succeeded.
       }
     })
   }, 3600000);
@@ -81,10 +81,10 @@ function getOpts(job){
 exports.stop = function(jobId){
   terminate(jobId, function (err) {
     if (err) { // you will get an error if you did not supply a valid process.pid
-      console.log("Oopsy: " + err); // handle errors in your preferred way.
+      logger.log("Oopsy: " + err); // handle errors in your preferred way.
     }
     else {
-      console.log('Closing job by invoking the stop endpoint'); // terminating the Processes succeeded.
+      logger.log('Closing job by invoking the stop endpoint'); // terminating the Processes succeeded.
     }
   });
   //make sure we cancel the timeout

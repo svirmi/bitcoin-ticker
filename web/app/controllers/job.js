@@ -5,10 +5,10 @@ exports.list = function(req, res){
   res.json(response);
 }
 
-exports.create = function(req, res) {
+exports.create = async function(req, res) {
   console.log("jobService::create()");
   const job = req.body;
-  const response = service.create(job);
+  const response = await service.create(job);
   console.log("This is the response: " + JSON.stringify(response));
   res.json(response);
 }
