@@ -5,7 +5,9 @@ const logger = require('./logger');
 var start = exports.start = async function(){
   try{
     await execAsync('pulseaudio -D');
-  } catch (ex) { }
+  } catch (error) {
+    logger.log("Pulse audio failed to start: " + error)
+  }
 }
 
 var createSink = exports.createSink = async function (sinkName) {

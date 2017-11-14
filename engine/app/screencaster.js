@@ -23,28 +23,33 @@ exports.start = async function(q) {
   //Init pulse audio
   const sinkId = await initPulseAudio();
 
-  //Init chrome
-  logger.log("About to launch Chrome.");
-  chrome = await launchChrome();
-  logger.log("Chrome started on pid: " + chrome.pid);
+  try {
+    //Init chrome
+    logger.log("About to launch Chrome.");
+    chrome = await launchChrome();
+    logger.log("Chrome started on pid: " + chrome.pid);
 
-  //Init remote interface
-  const remoteInterface = await initRemoteInterface(chrome);
-  remoteInterface.on("Page.screencastFrame", onScreencastFrame);
+    //Init remote interface
+    const remoteInterface = await initRemoteInterface(chrome);
+    remoteInterface.on("Page.screencastFrame", onScreencastFrame);
 
-  //Init Page and Runtime protocols from remote interface
-  Page = remoteInterface.Page;
-  Runtime = remoteInterface.Runtime;
-  await Promise.all([Page.enable(), Runtime.enable()]);
+    //Init Page and Runtime protocols from remote interface
+    Page = remoteInterface.Page;
+    Runtime = remoteInterface.Runtime;
+    await Promise.all([Page.enable(), Runtime.enable()]);
 
-  //Load page
-  await loadPage(args.getUrl());
+    //Load page
+    await loadPage(args.getUrl());
 
-  // Wait for window.onload before start streaming.
-  await Page.loadEventFired(async () => {
-    logger.log("Page.loadEventFired onload fired");
-    await executeAfterPageLoaded(chrome, sinkId);
-  });
+    // Wait for window.onload before start streaming.
+    await Page.loadEventFired(async () => {
+      logger.log("Page.loadEventFired onload fired");
+      await executeAfterPageLoaded(chrome, sinkId);
+    });
+  }catch(error){
+      logger.log("Madre mia que esta pasando: " + error);
+  }
+
 
 }
 
@@ -61,6 +66,7 @@ async function initPulseAudio(){
     return await pulseaudio.createSink(args.getOutputName());
 
   }catch(error){
+    logger.log("Error some how: " + error);
     throw error;
   }
 }
