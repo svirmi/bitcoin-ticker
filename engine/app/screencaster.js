@@ -24,13 +24,8 @@ exports.start = async function() {
   chrome = await loadChrome();
   logger.log("Chrome started on pid: " + chrome.pid);
 
-  if(false){
-    //Init pulse audio
-    const sinkId = await initPulseAudio();
-  }
-
-  const sinkId = 0;
-
+  //Init pulse audio
+  const sinkId = await initPulseAudio();
 
   //Init remote interface
   const remoteInterface = await initRemoteInterface(chrome);
@@ -98,16 +93,13 @@ async function executeAfterPageLoaded(chrome, sinkId){
   await execAsync('sleep 17');
 
   // GetInputId
-  if(false){ // disable audio recording
-    const inputIdList = await pulseaudio.getInputId(chrome.pid);
+  const inputIdList = await pulseaudio.getInputId(chrome.pid);
 
-    for (i = 0; i < inputIdList.length; i++) {
-      var inputId = inputIdList[i];
-      // move input to its corresponding sink
-      await pulseaudio.moveInput(inputId, sinkId);
-    }
+  for (i = 0; i < inputIdList.length; i++) {
+    var inputId = inputIdList[i];
+    // move input to its corresponding sink
+    await pulseaudio.moveInput(inputId, sinkId);
   }
-
 
   //Start capturing frames
   await startCapturingFrames();

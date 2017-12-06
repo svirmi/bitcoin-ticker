@@ -1,3 +1,14 @@
+Debugging the app in the cloud platform server
+
+pgrep node //lists all the node processes
+pgrep chrome //lists all the chrome processes
+pgrep ffmpeg //lists all the ffmpeg processes
+
+sudo kill <port>
+
+
+
+
 Installing PulseAudio
 https://askubuntu.com/questions/28176/how-do-i-run-pulseaudio-in-a-headless-server-installation
 
