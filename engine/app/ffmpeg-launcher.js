@@ -77,12 +77,6 @@ function ffmpegOpts(params) {
     //'-r', '25',
     //'-i', 'http://www.jplayer.org/audio/m4a/Miaow-07-Bubble.m4a',
 
-    '-reconnect_streamed',
-    '1',
-
-    '-reconnect_delay_max',
-    '60',
-
     '-f',
     'pulse',
     '-i',
