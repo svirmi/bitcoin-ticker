@@ -110,3 +110,4 @@ x = (33 \* 100) / 40 = 82.5
 
 We do not have support for 24fps, and if there is any video recorded at
 24fps we will not work and will look choppy but we can fix it need more time
+https://youtu.be/K943cKvEmuI
